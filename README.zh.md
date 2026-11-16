@@ -50,3 +50,5 @@ pnpm exec tsx tests/serve-fixture.ts
 本地测试服务提供确定性搜索、延迟返回和调用计数。CIMD 测试启动独立 HTTPS 文档服务，授权服务器在同意授权前实际抓取并校验客户端身份和回调地址。OpenSSL 为每次测试生成临时证书，仅测试授权服务器显式信任，TLS 校验保持开启。运行 `pnpm exec tsx tests/serve-cimd.ts` 可进行浏览器验收；这不代表验证了公网托管或第三方授权服务器。官方客户端验收步骤和已完成项目见 [验收说明](docs/acceptance.md)。
 
 私有发布前需配置 registry 和发布凭据，运行测试及打包。当前无 scope 的包名要求私有 registry 支持此类包；若使用 npmjs 私有包，需要组织 scope 并同步修改包与模块标识。项目不内置 registry 或业务服务信息。
+
+认证恢复失败会注销受影响服务的工具并提示重新登录。响应丢失或超时会报告结果未知，不会自动重放 tools/call；重连仅重新初始化连接和发现工具。关闭连接会拒绝新调用并等待已受理工作结束。[故障验收矩阵](docs/acceptance.md#high--and-medium-priority-failure-acceptance)区分自动化测试与真实页面证据。

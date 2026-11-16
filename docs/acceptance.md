@@ -61,3 +61,33 @@ The long call ran for 20,001 ms. Its bearer token expired 9,991 ms after accepta
 The fixture rotates and invalidates each consumed refresh token. Successful refresh after a real process restart therefore verifies that the rotated refresh token was persisted and reused. This verifies request-time expiry handling; it does not claim periodic background refresh or require every server to continue an accepted call after token expiry. The fixture deliberately allows accepted work to complete.
 
 Evidence is stored locally in ignored `artifacts/evidence/cimd-lifecycle-*.json`, `dsh-cimd-long-call.png` and `dsh-cimd-after-restart.png`; JSON contains counters and timestamps, not tokens. The audit endpoint now includes token issuance/expiry and tool acceptance/completion events. The automatic suite includes CIMD concurrent refresh, rotated-grant reload and a deterministic clock-controlled long-call expiry case; typechecking and all 20 tests passed.
+
+## High- and medium-priority failure acceptance
+
+Verified on 2026-11-16 with unmodified official DSH 0.2.2-rc.2 Web and the new `dsh-mcp-oauth-0.1.0.tgz` from the failure-acceptance pack directory. This package replaces build6 for these checks. No official DSH files were modified.
+
+| Scenario | Automated evidence | Real Web evidence |
+| --- | --- | --- |
+| Refresh token revoked | Login-required error, tools withdrawn, no interactive retry | Chat reports sign-in required; no tool executes or new consent opens |
+| Early 401 | One refresh, one successful tool execution | Covered by automated bridge test |
+| Repeated 401 | One refresh, then sign-in required and zero tools | Two rejected requests, one refresh, no tool execution; settings show sign-in required |
+| Response lost after acceptance | Unknown outcome; reconnect without replay | One accepted call, two connection initializations; chat explicitly says result unknown |
+| Disconnect during long work | Barrier-controlled accepted long call; one execution, reconnect | Response-loss case above; held long-work case is automated |
+| Tool timeout | Unknown outcome; one execution | Automated only |
+| User cancellation | Cancellation reaches server, no replay | Stop button sends one cancellation; delayed work has cancelledAt and no completedAt |
+| Clear/disable/unload during login or refresh | Six controlled Host cases; no late credential restore, no remaining tools or callback listener | Automated only |
+| Concurrent expiry | Eight actual tool calls share one refresh | Automated only |
+| Multiple services | Credential/tool namespaces and failure isolation | Healthy service search succeeds while failed service requires login |
+| Tool list changes | Real SSE notification; removed tools disappear; duplicate names never partially register | Settings count changes 2 → 3 → 1 |
+| Reconnect budget and manual recovery | Two retries after initial failure, then stop; explicit reconnect recovers | Successful reconnect after response loss; exhaustion is automated |
+| Configuration identity changes | URL, metadata identity, callback, scope, mode/client ID do not reuse mismatched grants | Automated only |
+| Disable/enable/delete | Disable retains grant, enable restores tools without consent, delete removes grant and flow | Earlier enable/disable check plus current Host tests |
+| Unload with an active call | Connection closes and drains in-flight work; no late tool registration | Automated only |
+
+The fault fixture is started with `CIMD_CALLBACK_URL=http://127.0.0.1:16278/oauth/callback pnpm exec tsx tests/serve-cimd.ts`. Its optional `/test-control` route exists only in audit-enabled manual fixtures. POST a strict JSON object with selected flags (`dropCalls`, `rejectTokens`, `rejectOnce`, `refreshFails`, `failInitialize`) or `toolNames`. Requests with Origin or a content type other than application/json are rejected; the server listens only on loopback. These controls are test infrastructure and are not in the npm plugin package.
+
+The browser sequence used `cimd-faults`: drop response, cancel a 60-second delayed call, reject every bearer token, manually sign in again, publish tool-list changes, reject one bearer request while refusing refresh, then call the separate healthy `cimd-test` service. Its final pre-reset audit recorded two manual authorizations, zero DCR registrations, two accepted tools (one dropped response, one cancelled), one successful refresh and one refused refresh. No new tool execution occurred during either authentication failure. All fault flags were reset after validation; the fault service remains sign-in required until explicitly logged in again.
+
+Local evidence lives in ignored `artifacts/evidence/faults-{drop,cancel,401,refresh}.json` and `dsh-fault-*.png` / `dsh-faults-and-isolation.png`. The regression suite now has 47 passing tests. New tests first exposed exhausted-401 misclassification, missing persistent authentication error status and missing reconnect after a lost tool response; these were fixed in the accepted package. The package also drains active calls during close and gives unknown-outcome failures an explicit no-automatic-retry message.
+
+This matrix distinguishes automated published-API integration tests from actual browser evidence. It does not constitute Desktop qualification, public-network identity-provider acceptance, or a claim that every matrix row was exercised through a model chat.

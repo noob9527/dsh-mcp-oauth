@@ -131,7 +131,7 @@ export class Provider implements OAuthClientProvider {
         if (!this.grant.tokens?.refresh_token) throw new OAuthMcpError('OAUTH_LOGIN_REQUIRED')
         const result = await auth(this, { serverUrl: this.config.url, resourceMetadataUrl, fetchFn: this.fetch })
         if (result !== 'AUTHORIZED') throw new OAuthMcpError('OAUTH_LOGIN_REQUIRED')
-      })().finally(() => { this.refresh = undefined })
+      })().catch(() => { throw new OAuthMcpError('OAUTH_LOGIN_REQUIRED') }).finally(() => { this.refresh = undefined })
     }
     return this.refresh
   }

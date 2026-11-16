@@ -128,7 +128,8 @@ export class McpOAuth extends TypertRemoteService {
     const entry = this.entries.get(id)
     if (!entry) return
     entry.attempt?.abort(); entry.disposeFlow()
-    await entry.provider.stop(); await entry.login; await entry.connection.close()
+    const closing = entry.connection.close()
+    await entry.provider.stop(); await entry.login; await closing
     this.entries.delete(id)
   }
   private async persist(): Promise<void> {

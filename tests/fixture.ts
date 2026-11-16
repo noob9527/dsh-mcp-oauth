@@ -10,24 +10,38 @@ export async function fixture(options: { cimd?: { url: string; ca: Buffer }; aud
   const requests = new Map<string, URLSearchParams>()
   const access = new Map<string, number>()
   const refresh = new Set<string>()
-  const state = { metadataFetches: 0, metadataValidated: 0, metadataRejected: 0, authorizations: 0, tokenExchanges: 0, registrations: 0, refreshes: 0, calls: 0, tokenSeconds: options.tokenSeconds ?? 3600, rejectTokens: false, refreshFails: false, callDelayMs: 0 }
+  const state = { metadataFetches: 0, metadataValidated: 0, metadataRejected: 0, authorizations: 0, tokenExchanges: 0, registrations: 0, refreshes: 0, refreshRequests: 0, calls: 0, cancellations: 0, initializations: 0, lists: 0, rejectedRequests: 0, tokenSeconds: options.tokenSeconds ?? 3600, rejectTokens: false, refreshFails: false, callDelayMs: 0, dropCalls: false, failInitialize: false, rejectOnce: false, cimdSupported: true }
   const tokenEvents: { grantType: string; issuedAt: number; expiresAt: number }[] = []
-  const callEvents: { name: string; acceptedAt: number; tokenExpiresAt: number; completedAt?: number }[] = []
+  const callEvents: { name: string; acceptedAt: number; tokenExpiresAt: number; completedAt?: number; cancelledAt?: number; dropped?: boolean }[] = []
   let offset = 0
   const now = () => Date.now() + offset
   let callGate: Promise<void> | undefined
   let callReceived: (() => void) | undefined
   let origin = ''
+  const streams = new Set<ServerResponse>()
+  const running = new Map<string | number, AbortController>()
+  let toolNames = ['search', 'delayed_echo']
+  let refreshGate: Promise<void> | undefined
+  let refreshReceived: (() => void) | undefined
+  const notifyTools = () => { for (const stream of streams) stream.write('event: message\ndata: ' + JSON.stringify({ jsonrpc: '2.0', method: 'notifications/tools/list_changed' }) + '\n\n') }
+
   const json = (res: ServerResponse, value: unknown, status = 200) => { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(value)) }
   const body = async (req: IncomingMessage) => { const chunks = []; for await (const part of req) chunks.push(Buffer.from(part)); return Buffer.concat(chunks).toString() }
   const server = createServer((req, res) => { void (async () => {
     const url = new URL(req.url ?? '/', origin)
     if (options.audit && url.pathname === '/test-audit') return json(res, { ...state, tokenEvents, callEvents })
+    if (options.audit && url.pathname === '/test-control' && req.method === 'POST') {
+      if (req.headers.origin || req.headers['content-type'] !== 'application/json') return json(res, { error: 'forbidden' }, 403)
+      const control = z.object({ refreshFails: z.boolean().optional(), rejectTokens: z.boolean().optional(), rejectOnce: z.boolean().optional(), dropCalls: z.boolean().optional(), failInitialize: z.boolean().optional(), toolNames: z.array(z.string().min(1)).optional() }).strict().parse(JSON.parse(await body(req)))
+      const { toolNames: names, ...flags } = control; Object.assign(state, flags)
+      if (names) { toolNames = names; notifyTools() }
+      return json(res, { ok: true })
+    }
     if (url.pathname.startsWith('/.well-known/oauth-protected-resource')) return json(res, { resource: origin + '/mcp', authorization_servers: [origin], scopes_supported: ['tools'] })
     if (url.pathname === '/.well-known/oauth-authorization-server') return json(res, {
       issuer: origin, authorization_endpoint: origin + '/authorize', token_endpoint: origin + '/token', registration_endpoint: origin + '/register',
       response_types_supported: ['code'], grant_types_supported: ['authorization_code', 'refresh_token'], code_challenge_methods_supported: ['S256'],
-      token_endpoint_auth_methods_supported: ['none', 'client_secret_post'], client_id_metadata_document_supported: true, scopes_supported: ['tools'],
+      token_endpoint_auth_methods_supported: ['none', 'client_secret_post'], client_id_metadata_document_supported: state.cimdSupported, scopes_supported: ['tools'],
     })
     if (url.pathname === '/register') { state.registrations++; return json(res, { ...JSON.parse(await body(req)), client_id: 'registered-' + state.registrations }, 201) }
     if (url.pathname === '/authorize') {
@@ -59,6 +73,7 @@ export async function fixture(options: { cimd?: { url: string; ca: Buffer }; aud
     }
     if (url.pathname === '/token') {
       const form = new URLSearchParams(await body(req))
+      if (form.get('grant_type') === 'refresh_token') { state.refreshRequests++; refreshReceived?.(); await refreshGate }
       if (form.get('grant_type') === 'authorization_code') {
         const saved = codes.get(form.get('code') ?? '')
         if (!saved || saved.get('redirect_uri') !== form.get('redirect_uri') || saved.get('client_id') !== form.get('client_id') ||
@@ -76,26 +91,36 @@ export async function fixture(options: { cimd?: { url: string; ca: Buffer }; aud
     }
     if (url.pathname !== '/mcp') return json(res, { error: 'not_found' }, 404)
     const expires = access.get(req.headers.authorization?.replace(/^Bearer /, '') ?? '')
-    if (state.rejectTokens || !expires || expires <= now()) {
+    if (state.rejectTokens || state.rejectOnce || !expires || expires <= now()) {
+      state.rejectOnce = false; state.rejectedRequests++
       res.setHeader('WWW-Authenticate', `Bearer resource_metadata="${origin}/.well-known/oauth-protected-resource/mcp"`)
       return json(res, { error: 'unauthorized' }, 401)
     }
+    if (req.method === 'GET') {
+      res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' }); res.flushHeaders()
+      streams.add(res); res.once('close', () => streams.delete(res)); return
+    }
     if (req.method !== 'POST') { res.writeHead(405).end(); return }
     const request = JSON.parse(await body(req))
+    if (request.method === 'notifications/cancelled') { const controller = running.get(request.params.requestId); if (controller) { state.cancellations++; controller.abort() } }
     if (request.id === undefined) { res.writeHead(202).end(); return }
     let result: unknown
-    if (request.method === 'initialize') result = { protocolVersion: request.params.protocolVersion, capabilities: { tools: { listChanged: true } }, serverInfo: { name: 'local-test-mcp', version: '1.0.0' } }
-    else if (request.method === 'tools/list') result = { tools: [
-      { name: 'search', description: 'Search deterministic local test documents.', inputSchema: { type: 'object', properties: { query: { type: 'string' } }, required: ['query'] } },
-      { name: 'delayed_echo', description: 'Return a test message after a configurable delay.', inputSchema: { type: 'object', properties: { message: { type: 'string' }, delayMs: { type: 'number' } }, required: ['message'] } },
-    ] }
+    if (request.method === 'initialize') { state.initializations++; if (state.failInitialize) return json(res, { error: 'unavailable' }, 503); result = { protocolVersion: request.params.protocolVersion, capabilities: { tools: { listChanged: true } }, serverInfo: { name: 'local-test-mcp', version: '1.0.0' } } }
+    else if (request.method === 'tools/list') {
+      state.lists++
+      result = { tools: toolNames.map(name => ({ name, description: 'Deterministic local test tool.', inputSchema: { type: 'object', properties: { query: { type: 'string' }, message: { type: 'string' }, delayMs: { type: 'number' } } } })) }
+    }
     else if (request.method === 'tools/call') {
       state.calls++
       const call: typeof callEvents[number] = { name: request.params.name, acceptedAt: now(), tokenExpiresAt: expires }
       callEvents.push(call)
+      const controller = new AbortController(); running.set(request.id, controller)
       callReceived?.()
       await callGate
-      await delay(request.params.name === 'delayed_echo' ? Math.min(60_000, Math.max(0, request.params.arguments.delayMs ?? state.callDelayMs)) : state.callDelayMs)
+      if (state.dropCalls) { call.dropped = true; running.delete(request.id); req.socket.destroy(); return }
+      try { await delay(request.params.name === 'delayed_echo' ? Math.min(60_000, Math.max(0, request.params.arguments.delayMs ?? state.callDelayMs)) : state.callDelayMs, undefined, { signal: controller.signal }) }
+      catch (error) { if (!controller.signal.aborted) throw error; call.cancelledAt = now(); return }
+      finally { running.delete(request.id) }
       call.completedAt = now()
       result = { content: [{ type: 'text', text: request.params.name === 'search' ? JSON.stringify([{ id: 'document-1', title: 'OAuth MCP test document', query: request.params.arguments.query }]) : request.params.arguments.message }] }
     } else if (request.method === 'ping') result = {}
@@ -105,14 +130,20 @@ export async function fixture(options: { cimd?: { url: string; ca: Buffer }; aud
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
   const address = server.address(); if (!address || typeof address === 'string') throw new Error('Missing test port')
   origin = `http://127.0.0.1:${address.port}`
-  return { origin, state, tokenEvents, callEvents, now, advanceTime(ms: number) { offset += ms },
+  return { origin, state, get streamCount() { return streams.size }, setTools(names: string[]) { toolNames = names; notifyTools() }, tokenEvents, callEvents, now, advanceTime(ms: number) { offset += ms },
+    holdRefresh() {
+      let release!: () => void
+      const received = new Promise<void>(resolve => { refreshReceived = resolve })
+      refreshGate = new Promise<void>(resolve => { release = resolve })
+      return { received, release }
+    },
     holdCalls() {
       let release!: () => void
       const received = new Promise<void>(resolve => { callReceived = resolve })
       callGate = new Promise<void>(resolve => { release = resolve })
       return { received, release }
     },
-    async close() { server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())) } }
+    async close() { for (const controller of running.values()) controller.abort(); for (const stream of streams) stream.end(); server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())) } }
 }
 
 /** Complete the browser steps in protocol tests only. UI acceptance uses a real browser. */

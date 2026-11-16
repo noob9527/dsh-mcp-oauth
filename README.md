@@ -78,3 +78,5 @@ pnpm publish --registry "$NPM_REGISTRY_URL" --no-git-checks
 ```
 
 This unscoped package requires a private registry that supports unscoped private packages. npmjs private packages require an organization scope and a corresponding package/module ID change. No registry, token or organization name is embedded in the package.
+
+Authentication recovery failure withdraws the affected service’s tools and requires sign-in. A lost response or timeout reports an unknown outcome and never automatically replays tools/call; reconnect only reinitializes the connection and discovers tools. Closing a connection rejects new calls and drains admitted work. See the [failure acceptance matrix](docs/acceptance.md#high--and-medium-priority-failure-acceptance) for automated versus browser evidence.
