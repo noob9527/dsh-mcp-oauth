@@ -20,3 +20,5 @@ Keep the plugin independent of DSH source workspaces and internal imports. Updat
 Use reserved example domains and repository-owned fixtures. Do not commit organization-specific services, .env files, tokens, authorization codes, callback URLs containing state, credentials files, personal paths, or unreviewed recordings. See [SECURITY.md](SECURITY.md) for sensitive reports. The release check is a limited hygiene check, not a comprehensive secret scanner.
 
 [Official-client acceptance](docs/acceptance.md) requires a local model key supplied outside the repository. Report browser, protocol and Desktop evidence separately. A PR does not need to publish a package or a GitHub Release.
+
+When changing supported DSH versions, run `pnpm run test:compatibility` and follow [the compatibility matrix](docs/compatibility.md). Missing matching peers are unsupported, not skipped runtime passes.

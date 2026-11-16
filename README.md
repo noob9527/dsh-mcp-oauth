@@ -15,13 +15,15 @@ Independent community plugin; not an official DeepSeek product. Version 0.1.0 is
 | Other DSH versions | Not declared compatible |
 | Remote or shared multi-user DSH | Not supported |
 
+The source candidate additionally verifies DSH `0.2.2-rc.3`; the published 0.1.0 package remains rc.2-only until a new release. See the [17-version compatibility matrix](docs/compatibility.md) for the minimum version, exact coverage and reproduction command.
+
 ## Install from npm
 
 Requires Node 24.9+ and an unmodified official DSH 0.2.2-rc.2 installation. The public package name is `@noob9527/dsh-mcp-oauth`.
 
-Publication status checked on 2026-11-16: npm accepted the 0.1.0 upload, but public registry lookup still returned 404. Registry installation is not yet verified; use the source/tarball workflow below until the package becomes available.
+Version 0.1.0 is available on the public npm registry. Installation by package name into a clean official DSH profile was verified on 2026-11-16.
 
-Once available, install the preview release:
+Install the preview release:
 
 ```sh
 dsh plugin --profile web add @noob9527/dsh-mcp-oauth@0.1.0

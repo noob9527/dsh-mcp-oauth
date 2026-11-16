@@ -21,7 +21,7 @@ The automated protocol suite and actual client acceptance are separate evidence 
 
 On 2026-11-16, the packed `@noob9527/dsh-mcp-oauth@0.1.0` was installed through the official DSH plugin command into a new isolated home. The Web plugin list displayed the scoped package as enabled, and OAuth MCP settings loaded the empty service list through the Host API. The 47 automated tests and typecheck passed after the package and Host/Client identifiers changed.
 
-This verifies local tarball installation and settings loading, not installation from npm. The registry accepted the 0.1.0 upload but still returned 404 at the last check on that date. Public download and installation remain pending. Earlier records below retain their original artifact names; they do not claim that every scenario was rerun on the scoped release artifact.
+Public npm availability was subsequently verified on 2026-11-16: `latest` resolved to 0.1.0, the registry SHA-1 matched the uploaded tarball (`7d358ef005c083be399cccd2325488797e5b0f85`), and installation by scoped package name into a new isolated official DSH Web profile succeeded. The settings-page check used the local tarball; the registry check verified package installation. Earlier records below retain their original artifact names; they do not claim that every scenario was rerun on the scoped release artifact.
 
 ## Local CIMD Web acceptance
 

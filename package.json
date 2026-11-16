@@ -6,7 +6,7 @@
   "license": "MIT",
   "engines": {
     "node": ">=24.9.0",
-    "dsh": "0.2.2-rc.2"
+    "dsh": "0.2.2-rc.2 || 0.2.2-rc.3"
   },
   "main": "./lib/index.js",
   "types": "./lib/types/index.d.ts",
@@ -49,27 +49,28 @@
     "test": "tsx --test tests/*.test.ts",
     "prepack": "pnpm run typecheck && pnpm run build",
     "acceptance": "node scripts/acceptance.mjs",
-    "check:release": "node scripts/check-release.mjs"
+    "check:release": "node scripts/check-release.mjs",
+    "test:compatibility": "node scripts/compatibility.mjs"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "4.1.0",
-    "@deepseek-ai/dsh-api-gateway": "0.2.2-rc.2",
-    "@deepseek-ai/dsh-api-remote-access": "0.2.2-rc.2",
-    "@deepseek-ai/dsh-api-remotes": "0.2.2-rc.2",
-    "@deepseek-ai/dsh-app-boot": "0.2.2-rc.2",
-    "@deepseek-ai/dsh-authorization": "0.2.2-rc.2",
-    "@deepseek-ai/dsh-client-locale": "0.2.2-rc.2",
-    "@deepseek-ai/dsh-client-ui-plugin-manager": "0.2.2-rc.2",
-    "@deepseek-ai/dsh-client-ui-primitives": "0.2.2-rc.2",
-    "@deepseek-ai/dsh-client-ui-renderer": "0.2.2-rc.2",
-    "@deepseek-ai/dsh-client-ui-settings": "0.2.2-rc.2",
-    "@deepseek-ai/dsh-client-ui-slots": "0.2.2-rc.2",
-    "@deepseek-ai/dsh-credentials": "0.2.2-rc.2",
-    "@deepseek-ai/dsh-error": "0.2.2-rc.2",
-    "@deepseek-ai/dsh-mcp-client": "0.2.2-rc.2",
-    "@deepseek-ai/dsh-tools": "0.2.2-rc.2",
-    "@deepseek-ai/dsh-typert-protocol": "0.2.2-rc.2",
-    "@deepseek-ai/dsh-typert-registry": "0.2.2-rc.2"
+    "@deepseek-ai/dsh-api-gateway": "0.2.2-rc.2 || 0.2.2-rc.3",
+    "@deepseek-ai/dsh-api-remote-access": "0.2.2-rc.2 || 0.2.2-rc.3",
+    "@deepseek-ai/dsh-api-remotes": "0.2.2-rc.2 || 0.2.2-rc.3",
+    "@deepseek-ai/dsh-app-boot": "0.2.2-rc.2 || 0.2.2-rc.3",
+    "@deepseek-ai/dsh-authorization": "0.2.2-rc.2 || 0.2.2-rc.3",
+    "@deepseek-ai/dsh-client-locale": "0.2.2-rc.2 || 0.2.2-rc.3",
+    "@deepseek-ai/dsh-client-ui-plugin-manager": "0.2.2-rc.2 || 0.2.2-rc.3",
+    "@deepseek-ai/dsh-client-ui-primitives": "0.2.2-rc.2 || 0.2.2-rc.3",
+    "@deepseek-ai/dsh-client-ui-renderer": "0.2.2-rc.2 || 0.2.2-rc.3",
+    "@deepseek-ai/dsh-client-ui-settings": "0.2.2-rc.2 || 0.2.2-rc.3",
+    "@deepseek-ai/dsh-client-ui-slots": "0.2.2-rc.2 || 0.2.2-rc.3",
+    "@deepseek-ai/dsh-credentials": "0.2.2-rc.2 || 0.2.2-rc.3",
+    "@deepseek-ai/dsh-error": "0.2.2-rc.2 || 0.2.2-rc.3",
+    "@deepseek-ai/dsh-mcp-client": "0.2.2-rc.2 || 0.2.2-rc.3",
+    "@deepseek-ai/dsh-tools": "0.2.2-rc.2 || 0.2.2-rc.3",
+    "@deepseek-ai/dsh-typert-protocol": "0.2.2-rc.2 || 0.2.2-rc.3",
+    "@deepseek-ai/dsh-typert-registry": "0.2.2-rc.2 || 0.2.2-rc.3"
   },
   "dependencies": {
     "@modelcontextprotocol/client": "2.2.0",
