@@ -6,14 +6,15 @@
 
 ## 状态与兼容性
 
-本项目是独立社区插件，并非 DeepSeek 官方产品。0.1.0 为初始预览版。
+本项目是独立社区插件，并非 DeepSeek 官方产品。npm 0.1.0 仅支持本机回调；当前 0.2.0-rc.1 开发版新增远程个人实例回调，尚未发布。
 
 | 客户端 | 验证状态 |
 | --- | --- |
 | 官方 DSH 0.2.2-rc.2 Web，本机 macOS | 已验证浏览器授权和真实聊天调用 |
 | 官方 Desktop | 计划支持，尚待验收 |
 | 其他 DSH 版本 | 未声明兼容 |
-| 远程或多人共享 DSH | 不支持 |
+| 远程个人 DSH，0.2.0-rc.1 | HTTPS 代理 fixture 已验证，实际部署仍需验收 |
+| 多人共享 DSH | 不支持 |
 
 当前源码候选包另已验证 DSH `0.2.2-rc.3`；已发布的 0.1.0 仍仅声明支持 rc.2，需要新版本发布才能扩大安装范围。最低兼容版本、验证范围与复现命令见 [17 版本兼容矩阵](docs/compatibility.md)。
 
@@ -40,7 +41,7 @@ pnpm install --frozen-lockfile --ignore-scripts
 pnpm run typecheck
 pnpm test
 pnpm pack --pack-destination artifacts
-dsh plugin --profile web add "$(pwd)/artifacts/noob9527-dsh-mcp-oauth-0.1.0.tgz"
+dsh plugin --profile web add "$(pwd)/artifacts/noob9527-dsh-mcp-oauth-0.2.0-rc.1.tgz"
 ```
 
 测试需要支持 `req -addext` 的 OpenSSL；自动化测试不需要模型 API Key 或业务 MCP 服务。DSH 提示需要重启时，重启后继续。如果使用自定义 `DSH_HOME`，安装插件和启动 DSH 时必须使用相同值。通过 npm 安装时，如无法解析包名，请检查 `npm config get registry`；公开 registry 为 `https://registry.npmjs.org/`。
@@ -49,9 +50,11 @@ Desktop 使用独立 profile，目前尚未完成其安装和 OAuth 验收。
 
 ## 登录
 
-进入“Plugins → Built-in plugin settings → OAuth MCP”（当前官方扩展位把设置入口放在这个分组中），添加服务、保存并点击“登录”，随后打开授权页面。浏览器必须运行在 DSH 所在的电脑上。回调页只确认已收到授权响应；最终授权状态和工具连接状态分别显示在 DSH 中。
+进入“Plugins → Built-in plugin settings → OAuth MCP”（当前官方扩展位把设置入口放在这个分组中），添加服务、保存并点击“登录”，随后打开授权页面。本机模式下，浏览器必须运行在 DSH 所在的电脑上；远程个人实例模式下，管理员配置 HTTPS 回调代理后，可在自己的浏览器登录。回调页只确认已收到授权响应；最终授权状态和工具连接状态分别显示在 DSH 中。
 
 ## 配置
+
+开发版支持“本机”和“远程个人实例”两种部署方式。远程模式配置公网 HTTPS 回调 URL 和内部监听端口（默认 6274），监听地址固定为 `127.0.0.1`。代理必须与实例共享网络命名空间，每人拥有独立 Host、profile 和凭据存储。部署步骤、CIMD 模板及降级限制见[远程个人实例指南](docs/remote-personal-instances.zh.md)。
 
 默认服务列表为空。文档中的 `https://mcp.example.com/mcp` 仅为占位地址。
 
@@ -69,7 +72,7 @@ Desktop 使用独立 profile，目前尚未完成其安装和 OAuth 验收。
 
 刷新 token 不主动中断已受理的长调用。HTTP 401 最多触发一次 SDK 认证后重发；断线或超时不会自动重放工具调用。出现“结果未知”时，先核查服务端执行情况，再决定是否重试。
 
-首版只支持本机 Web/Desktop，不支持远程回调、旧版 SSE/stdio、MCP Tasks、资源浏览和提示词浏览。
+开发版支持本机及远程个人 Web 实例；Desktop 仍待验收。不支持多人共享 Host、旧版 SSE/stdio、MCP Tasks、资源浏览和提示词浏览。
 
 ## 升级与卸载
 

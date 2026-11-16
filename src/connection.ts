@@ -35,7 +35,7 @@ export class Connection {
     const config = this.provider.config
     clearTimeout(this.timer); this.timer = undefined
     this.status.connection = 'connecting'; this.status.error = ''
-    const client = new Client({ name: '@noob9527/dsh-mcp-oauth', version: '0.1.0' })
+    const client = new Client({ name: '@noob9527/dsh-mcp-oauth', version: '0.2.0-rc.1' })
     const abort = new AbortController()
     this.client = client; this.abort = abort
     const transport = new StreamableHTTPClientTransport(new URL(config.url), { authProvider: this.provider.transportAuth })

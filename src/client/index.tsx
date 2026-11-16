@@ -53,7 +53,7 @@ function Card({ t, view, invoke }: Props) {
     void run(() => invoke('act', { id, action }))
   }
   return <section style={stack}>
-    <p>{t('local')}</p>
+    <p>{t('deploymentHelp')}</p>
     {error && <p role="alert">{error}</p>}
     {!rows ? <p>{t('loading')}</p> : !rows.length ? <p>{t('empty')}</p> : rows.map(row => <section key={row.config.id} style={box}>
       <strong>{row.config.label}</strong><span>{row.config.url}</span>
@@ -76,6 +76,11 @@ function Card({ t, view, invoke }: Props) {
       if (!parsed.success || !editing && rows?.some(row => row.config.id === draft.id)) { setError(t('invalid')); return }
       void run(async () => { await invoke('save', { config: parsed.data, ...(secret ? { secret } : {}) }); setDraft(undefined); setSecret('') })
     }}>
+      <label style={stack}>{t('callbackMode')}<select disabled={busy} value={draft.callbackMode} onChange={event => setDraft({ ...draft, callbackMode: serverSchema.shape.callbackMode.parse(event.target.value) })}>
+        <option value="local">{t('localMode')}</option><option value="remote">{t('remoteMode')}</option>
+      </select></label>
+      <p>{t(draft.callbackMode === 'remote' ? 'remoteHelp' : 'local')}</p>
+      {draft.callbackMode === 'remote' && <label style={stack}>{t('callbackPort')}<Input type="number" disabled={busy} value={draft.callbackPort} onChange={event => setDraft({ ...draft, callbackPort: Number(event.target.value) })} /></label>}
       {(['id', 'label', 'url', 'clientId', 'metadataUrl', 'redirectUrl', 'scope'] as const).map(key => <label key={key} style={stack}>{t(key)}
         <Input value={draft[key]} disabled={busy || key === 'id' && editing} onChange={event => setDraft({ ...draft, [key]: event.target.value })} />
       </label>)}

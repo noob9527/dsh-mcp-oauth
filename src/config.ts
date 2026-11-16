@@ -18,11 +18,9 @@ export const serverSchema = z.object({
     const url = new URL(value)
     return url.protocol === 'https:' && url.pathname !== '/' && !url.username && !url.password && !url.hash
   })]).default(''),
-  redirectUrl: z.string().url().default('http://127.0.0.1:6274/oauth/callback').refine(value => {
-    const url = new URL(value)
-    return url.protocol === 'http:' && url.hostname === '127.0.0.1' && !!url.port &&
-      Number(url.port) > 0 && url.pathname !== '/' && !url.search && !url.hash && !url.username && !url.password
-  }, 'Use an explicit loopback port and callback path.'),
+  callbackMode: z.enum(['local', 'remote']).default('local'),
+  callbackPort: z.number().int().min(1).max(65535).default(6274),
+  redirectUrl: z.string().url().default('http://127.0.0.1:6274/oauth/callback'),
   scope: z.string().max(2048).default(''),
   connectTimeoutMs: duration.default(30_000),
   authTimeoutMs: duration.default(300_000),
@@ -31,6 +29,15 @@ export const serverSchema = z.object({
   reconnectAttempts: z.number().int().min(0).max(20).default(5),
   reconnectMaxDelayMs: duration.default(30_000),
 }).strict().superRefine((value, ctx) => {
+  let redirect: URL
+  try { redirect = new URL(value.redirectUrl) }
+  catch { return }
+  const clean = redirect.pathname !== '/' && !redirect.search && !redirect.hash && !redirect.username && !redirect.password
+  const valid = value.callbackMode === 'remote'
+    ? redirect.protocol === 'https:' && !['localhost', '127.0.0.1', '[::1]'].includes(redirect.hostname)
+    : redirect.protocol === 'http:' && redirect.hostname === '127.0.0.1' && !!redirect.port && Number(redirect.port) > 0
+  if (!clean || !valid) ctx.addIssue({ code: 'custom', path: ['redirectUrl'], message: 'Use a dedicated HTTPS callback for remote instances, or an explicit loopback HTTP port and path for local use.' })
+
   if (value.mode === 'cimd' && !value.metadataUrl) ctx.addIssue({ code: 'custom', path: ['metadataUrl'], message: 'CIMD requires a metadata document URL.' })
   if (value.mode === 'preregistered' && !value.clientId) ctx.addIssue({ code: 'custom', path: ['clientId'], message: 'Pre-registration requires a client ID.' })
 })

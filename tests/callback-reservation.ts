@@ -10,5 +10,5 @@ export async function reserveCallback(t: TestContext) {
   const address = server.address()
   if (!address || typeof address === 'string') throw new Error('Callback socket was not assigned')
   return { url: `http://127.0.0.1:${address.port}/oauth/callback`, server,
-    receive: (url: string, state: string, signal: AbortSignal) => listenCallback(url, state, signal, server) }
+    receive: (url: string, state: string, signal: AbortSignal, _reserved?: import('node:http').Server, listenPort?: number) => listenCallback(url, state, signal, server, listenPort) }
 }

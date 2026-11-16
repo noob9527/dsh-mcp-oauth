@@ -2,7 +2,7 @@
 
 Use an isolated `DSH_HOME` and an unmodified npm installation of DSH 0.2.2-rc.2. Never use source overlays or workspace links as release evidence.
 
-1. Run `pnpm pack`, then install the tarball with `dsh plugin --profile web add /absolute/path/to/noob9527-dsh-mcp-oauth-0.1.0.tgz`.
+1. Run `pnpm pack`, then install the tarball with `dsh plugin --profile web add /absolute/path/to/noob9527-dsh-mcp-oauth-0.2.0-rc.1.tgz`.
 2. Run `dsh web --no-open --port 3097` with the same isolated home. Open the exact URL printed by DSH; its local login token must not be recorded in screenshots or documentation.
 3. Run `pnpm exec tsx tests/serve-fixture.ts`. Add its printed MCP endpoint in Plugins → OAuth MCP, use DCR and a free permitted loopback callback port.
 4. Sign in, open the authorization page and approve. Verify that authorization succeeds, the connection becomes connected and two tools are listed.
@@ -97,3 +97,10 @@ The browser sequence used `cimd-faults`: drop response, cancel a 60-second delay
 Local evidence lives in ignored `artifacts/evidence/faults-{drop,cancel,401,refresh}.json` and `dsh-fault-*.png` / `dsh-faults-and-isolation.png`. The regression suite now has 47 passing tests. New tests first exposed exhausted-401 misclassification, missing persistent authentication error status and missing reconnect after a lost tool response; these were fixed in the accepted package. The package also drains active calls during close and gives unknown-outcome failures an explicit no-automatic-retry message.
 
 This matrix distinguishes automated published-API integration tests from actual browser evidence. It does not constitute Desktop qualification, public-network identity-provider acceptance, or a claim that every matrix row was exercised through a model chat.
+
+
+## Remote personal-instance preview
+
+The unreleased 0.2.0-rc.1 build passed typecheck and 54 automated tests on 2026-11-16. New cases use an HTTPS proxy with per-test certificate trust to forward browser-equivalent requests to a loopback receiver. They verify exact Host/path and state matching, ambiguous and duplicate responses, cancellation/timeouts, occupied internal ports, independent instance states, CIMD/PKCE exchange, refresh and restarted grant reuse followed by a search. The Host test also rejects non-owner list, save and login requests.
+
+A clean official DSH Web installation loaded the tarball and its settings page. Browser checks covered local defaults, remote selection, rejection of an HTTP callback in remote mode, saving HTTPS CIMD configuration and reopening the saved fields. This UI check did not perform remote browser consent or a model-driven search through a deployed ingress. Organization ingress routing, owner-session mapping, trusted TLS and real OAuth acceptance still require deployment-specific verification; Desktop remains unqualified.

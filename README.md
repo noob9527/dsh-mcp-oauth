@@ -6,14 +6,15 @@ OAuth-protected MCP tools for an unmodified DeepSeek Harness installation. The p
 
 ## Status and compatibility
 
-Independent community plugin; not an official DeepSeek product. Version 0.1.0 is an initial preview.
+Independent community plugin; not an official DeepSeek product. The npm 0.1.0 release supports local callbacks. The current 0.2.0-rc.1 development build adds remote personal-instance callbacks and is not yet published.
 
 | Surface | Status |
 | --- | --- |
 | Official DSH 0.2.2-rc.2 Web, local macOS | Browser OAuth and real chat tool calls verified |
 | Official Desktop | Intended scope; acceptance pending |
 | Other DSH versions | Not declared compatible |
-| Remote or shared multi-user DSH | Not supported |
+| Remote personal DSH, 0.2.0-rc.1 | HTTPS proxy fixture verified; actual deployment acceptance required |
+| Shared multi-user DSH | Not supported |
 
 The source candidate additionally verifies DSH `0.2.2-rc.3`; the published 0.1.0 package remains rc.2-only until a new release. See the [17-version compatibility matrix](docs/compatibility.md) for the minimum version, exact coverage and reproduction command.
 
@@ -40,7 +41,7 @@ pnpm install --frozen-lockfile --ignore-scripts
 pnpm run typecheck
 pnpm test
 pnpm pack --pack-destination artifacts
-dsh plugin --profile web add "$(pwd)/artifacts/noob9527-dsh-mcp-oauth-0.1.0.tgz"
+dsh plugin --profile web add "$(pwd)/artifacts/noob9527-dsh-mcp-oauth-0.2.0-rc.1.tgz"
 ```
 
 Tests require OpenSSL supporting `req -addext`. No model API key or business MCP endpoint is needed for automated tests. Restart DSH when prompted. If DSH uses a custom `DSH_HOME`, use the same value for plugin installation and startup. For npm installation, check `npm config get registry` if the package cannot be resolved; the public registry is `https://registry.npmjs.org/`.
@@ -49,7 +50,7 @@ Desktop has a separate profile; installation and OAuth behavior there are not ye
 
 ## Sign in
 
-Open **Plugins → Built-in plugin settings → OAuth MCP → Add service** (the current public DSH slot places this settings entry in that group). Enter the service URL and registration settings, save, click **Sign in**, then **Open authorization page**. Approve in the browser on the computer running DSH. The callback page only confirms receipt; the DSH page separately displays authorization and connection completion. Tools become available to normal chat once connected.
+Open **Plugins → Built-in plugin settings → OAuth MCP → Add service** (the current public DSH slot places this settings entry in that group). Enter the service URL and registration settings, save, click **Sign in**, then **Open authorization page**. For local mode, approve in the browser on the computer running DSH. For remote mode, open the link in your own browser after the administrator configures the HTTPS callback. The callback page only confirms receipt; the DSH page separately displays authorization and connection completion. Tools become available to normal chat once connected.
 
 ## Configuration
 
@@ -61,6 +62,8 @@ The initial service list is empty. A placeholder endpoint is `https://mcp.exampl
 | Registration mode | Automatic, CIMD, pre-registered or DCR |
 | Client metadata document URL | Public HTTPS CIMD document maintained by the client operator |
 | Client ID / secret | Pre-registered identity; the secret is stored separately |
+| Deployment | Local or remote personal instance; remote mode requires an administrator-configured HTTPS proxy |
+| Internal loopback listener port | Remote mode only; defaults to 6274, always bound to 127.0.0.1 |
 | Callback URL | Defaults to `http://127.0.0.1:6274/oauth/callback`; must match permitted redirects |
 | Scopes | Optional space-separated scope names |
 
@@ -78,7 +81,7 @@ Disabling preserves authorization. Clearing authorization disconnects and delete
 
 Requests refresh an expiring token when possible. Concurrent refresh work is coalesced; a 401 permits one SDK authentication retry. Refresh alone does not interrupt accepted calls. Network failures and tool timeouts never cause automatic replay; an unknown outcome must be checked before manually repeating a state-changing tool.
 
-Only local Web and Desktop are in scope. No remote-host browser callbacks, legacy SSE/stdio transports, MCP Tasks, resource browsing or prompt browsing are provided.
+Local instances and remote personal Web instances are in scope. Shared multi-user Hosts, legacy SSE/stdio transports, MCP Tasks, resource browsing and prompt browsing are unsupported. See [remote deployment](docs/remote-personal-instances.md) for proxy routing, CIMD documents, isolation requirements and downgrade precautions.
 
 ## Upgrade and uninstall
 

@@ -10,7 +10,7 @@ pnpm run typecheck
 pnpm test
 pnpm run build
 pnpm pack --pack-destination artifacts
-node scripts/check-release.mjs --tarball artifacts/noob9527-dsh-mcp-oauth-0.1.0.tgz
+node scripts/check-release.mjs --tarball artifacts/noob9527-dsh-mcp-oauth-0.2.0-rc.1.tgz
 ```
 
 Describe the user-visible behavior, relevant tests and compatibility impact. Add regression tests for changes to authorization, refresh, retries or teardown. Use loopback fixtures, atomic port allocation and explicit lifecycle cleanup. Do not weaken TLS verification, log credentials or silently retry tools with unknown outcomes.

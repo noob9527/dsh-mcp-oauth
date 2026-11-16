@@ -12,7 +12,7 @@ function run(args) {
 }
 run(['pack', '--pack-destination', artifacts])
 run(['exec', 'dsh', 'web', '--help'])
-run(['exec', 'dsh', 'plugin', '--profile', 'web', 'add', join(artifacts, 'noob9527-dsh-mcp-oauth-0.1.0.tgz')])
+run(['exec', 'dsh', 'plugin', '--profile', 'web', 'add', join(artifacts, 'noob9527-dsh-mcp-oauth-0.2.0-rc.1.tgz')])
 console.log(`Isolated acceptance home: ${env.DSH_HOME}`)
 const fixture = spawn('pnpm', ['exec', 'tsx', resolve('tests/serve-fixture.ts')], { env, stdio: 'inherit' })
 const web = spawn('pnpm', ['exec', 'dsh', 'web', '--no-open', '--port', '0'], { env, stdio: 'inherit' })

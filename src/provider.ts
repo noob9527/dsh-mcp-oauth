@@ -110,7 +110,7 @@ export class Provider implements OAuthClientProvider {
     this.active = { state: randomBytes(32).toString('hex'), signal: lifetime, notify }
     let callback: Awaited<ReturnType<typeof listenCallback>> | undefined
     try {
-      callback = await this.receiveCallback(this.redirectUrl, this.active.state, lifetime)
+      callback = await this.receiveCallback(this.redirectUrl, this.active.state, lifetime, undefined, this.config.callbackMode === 'remote' ? this.config.callbackPort : undefined)
       const challenge = await this.fetch(this.config.url, { method: 'GET' })
       const resourceMetadataUrl = extractResourceMetadataUrl(challenge)
       await challenge.body?.cancel()

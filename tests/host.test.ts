@@ -19,6 +19,8 @@ import { reserveCallback } from './callback-reservation.ts'
 import { setTimeout as delay } from 'node:timers/promises'
 import { fixture, approve } from './fixture.ts'
 
+declare module '@deepseek-ai/dsh-typert-protocol' { interface PrincipalMap { oauthTestGuest: { kind: 'oauth-test-guest' } } }
+
 test('official Host gateway loads strict methods, persists services and withdraws on unload', async t => {
   const callback = await reserveCallback(t)
   const configuredPlugin = plugin.withCallbackListener(callback.receive)
@@ -38,6 +40,15 @@ test('official Host gateway loads strict methods, persists services and withdraw
   const call = (method: string, args: Record<string, unknown> = {}) => ctx.typertGateway.invoke({ peer, namespace: 'mcpOAuth', method, args })
   assert(ctx.typert.local.get('mcpOAuth/list'))
   assert.deepEqual(await call('list'), [])
+  const guest = new Peer(ctx, { principal: { kind: 'oauth-test-guest' } })
+  for (const [method, args] of [
+    ['list', {}],
+    ['save', { config: serverSchema.parse({ id: 'guest', label: 'Guest', url: 'https://mcp.example.com/mcp' }) }],
+    ['act', { id: 'one', action: 'login' }],
+  ] as const) {
+    await assert.rejects(async () => ctx.typertGateway.invoke({ peer: guest, namespace: 'mcpOAuth', method, args }))
+  }
+
   const config = serverSchema.parse({ id: 'one', label: 'One', url: 'https://mcp.example.com/mcp', enabled: false })
   await call('save', { config })
   const rows = z.array(statusSchema).parse(await call('list'))
