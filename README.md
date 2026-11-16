@@ -10,17 +10,17 @@ Independent community plugin; not an official DeepSeek product. The npm 0.1.0 re
 
 | Surface | Status |
 | --- | --- |
-| Official DSH 0.2.2-rc.2 Web, local macOS | Browser OAuth and real chat tool calls verified |
+| Official DSH 0.2.1-alpha.3 / 0.2.2-rc.1 Web, local macOS | Current candidate: browser CIMD OAuth and real chat tool calls verified |
 | Official Desktop | Intended scope; acceptance pending |
 | Other DSH versions | Not declared compatible |
 | Remote personal DSH, 0.2.0-rc.1 | HTTPS proxy fixture verified; actual deployment acceptance required |
 | Shared multi-user DSH | Not supported |
 
-The source candidate additionally verifies DSH `0.2.2-rc.3`; the published 0.1.0 package remains rc.2-only until a new release. See the [17-version compatibility matrix](docs/compatibility.md) for the minimum version, exact coverage and reproduction command.
+The source candidate requires DSH `>=0.2.1-alpha.3`. All 13 published versions at or above this floor in the [17-version compatibility matrix](docs/compatibility.md) passed automated checks. Later versions are admitted by the range but are not automatically certified. The published 0.1.0 package retains its original rc.2 requirement until a new release.
 
 ## Install from npm
 
-Requires Node 24.9+ and an unmodified official DSH 0.2.2-rc.2 installation. The public package name is `@noob9527/dsh-mcp-oauth`.
+Requires Node 24.9+ and an unmodified official DSH installation satisfying `>=0.2.1-alpha.3`. The public package name is `@noob9527/dsh-mcp-oauth`.
 
 Version 0.1.0 is available on the public npm registry. Installation by package name into a clean official DSH profile was verified on 2026-11-16.
 
@@ -34,7 +34,7 @@ The unscoped `dsh-mcp-oauth` package is a different project. When migrating a lo
 
 ## Install from source
 
-Requires Node **24.9+**, pnpm **12.5.1**, and an unmodified official DSH **0.2.2-rc.2** installation. Clone this repository and run these commands from its directory:
+Requires Node **24.9+**, pnpm **12.5.1**, and an unmodified official DSH installation satisfying **`>=0.2.1-alpha.3`**. Clone this repository and run these commands from its directory:
 
 ```sh
 pnpm install --frozen-lockfile --ignore-scripts

@@ -15,7 +15,7 @@ node scripts/check-release.mjs --tarball artifacts/noob9527-dsh-mcp-oauth-0.2.0-
 
 Describe the user-visible behavior, relevant tests and compatibility impact. Add regression tests for changes to authorization, refresh, retries or teardown. Use loopback fixtures, atomic port allocation and explicit lifecycle cleanup. Do not weaken TLS verification, log credentials or silently retry tools with unknown outcomes.
 
-Keep the plugin independent of DSH source workspaces and internal imports. Update both README languages for user-facing behavior changes. Do not broaden the supported DSH version without a packed-plugin installation test on the corresponding unmodified release.
+Keep the plugin independent of DSH source workspaces and internal imports. Update both README languages for user-facing behavior changes. Build dependencies are pinned to the minimum supported DSH version. Do not lower that floor without packed-plugin acceptance on the proposed minimum release. The minimum range admits future versions; report tested versions separately from versions merely allowed by the installer.
 
 Use reserved example domains and repository-owned fixtures. Do not commit organization-specific services, .env files, tokens, authorization codes, callback URLs containing state, credentials files, personal paths, or unreviewed recordings. See [SECURITY.md](SECURITY.md) for sensitive reports. The release check is a limited hygiene check, not a comprehensive secret scanner.
 

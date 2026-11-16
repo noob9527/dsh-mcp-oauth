@@ -1,5 +1,5 @@
 /** Expected failures are safe to expose without upstream response bodies. */
-import { HarnessError } from '@deepseek-ai/dsh-error'
+import { HarnessError } from '@deepseek-ai/dsh-llm'
 export class OAuthMcpError extends HarnessError {
   constructor(code: string) {
     super(code === 'MCP_CALL_OUTCOME_UNKNOWN'

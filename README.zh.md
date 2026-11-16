@@ -10,17 +10,17 @@
 
 | 客户端 | 验证状态 |
 | --- | --- |
-| 官方 DSH 0.2.2-rc.2 Web，本机 macOS | 已验证浏览器授权和真实聊天调用 |
+| 官方 DSH 0.2.1-alpha.3 / 0.2.2-rc.1 Web，本机 macOS | 当前候选包：已验证浏览器 CIMD 授权和真实聊天调用 |
 | 官方 Desktop | 计划支持，尚待验收 |
 | 其他 DSH 版本 | 未声明兼容 |
 | 远程个人 DSH，0.2.0-rc.1 | HTTPS 代理 fixture 已验证，实际部署仍需验收 |
 | 多人共享 DSH | 不支持 |
 
-当前源码候选包另已验证 DSH `0.2.2-rc.3`；已发布的 0.1.0 仍仅声明支持 rc.2，需要新版本发布才能扩大安装范围。最低兼容版本、验证范围与复现命令见 [17 版本兼容矩阵](docs/compatibility.md)。
+当前源码候选包要求 DSH `>=0.2.1-alpha.3`。[17 版本兼容矩阵](docs/compatibility.md)中满足下限的 13 个已发布版本均通过自动化检查。范围允许安装后续版本，但不代表后续版本自动通过验收。已发布的 0.1.0 保留原 rc.2 限制，需要发布新版本才能扩大安装范围。
 
 ## 从 npm 安装
 
-需要 Node 24.9+ 和未经修改的官方 DSH 0.2.2-rc.2。公开包名为 `@noob9527/dsh-mcp-oauth`。
+需要 Node 24.9+ 和满足 `>=0.2.1-alpha.3` 的未经修改官方 DSH。公开包名为 `@noob9527/dsh-mcp-oauth`。
 
 0.1.0 已在公开 npm registry 可用，2026-11-16 已验证在干净的官方 DSH profile 中按包名安装成功。
 
@@ -34,7 +34,7 @@ dsh plugin --profile web add @noob9527/dsh-mcp-oauth@0.1.0
 
 ## 从源码安装
 
-需要 Node **24.9+**、pnpm **12.5.1**，以及未经修改的官方 DSH **0.2.2-rc.2**。克隆本仓库后，在仓库目录运行：
+需要 Node **24.9+**、pnpm **12.5.1**，以及满足 **`>=0.2.1-alpha.3`** 的未经修改官方 DSH。克隆本仓库后，在仓库目录运行：
 
 ```sh
 pnpm install --frozen-lockfile --ignore-scripts

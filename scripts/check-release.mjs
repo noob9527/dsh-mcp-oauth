@@ -1,6 +1,7 @@
 /** Checks public source and package contents; this is not a comprehensive secret scanner. */
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
+import { evaluatePluginCompatibility } from '@deepseek-ai/dsh-app-boot';
 
 const failures = [];
 const fail = (path, reason) => failures.push(`${path}: ${reason}`);
@@ -25,6 +26,14 @@ for (const path of ['README.md', 'README.zh.md', 'CONTRIBUTING.md', 'SECURITY.md
 }
 for (const [name, version] of Object.entries(pkg.peerDependencies)) {
   if (name.startsWith('@deepseek-ai/dsh-') && version !== pkg.engines.dsh) fail('package.json', `inconsistent compatibility: ${name}`);
+}
+// Exercise the official installer semantics, which include prerelease versions.
+if (pkg.engines.dsh !== '>=0.2.1-alpha.3') fail('package.json', 'expected the verified minimum-version range');
+for (const version of ['0.2.1-alpha.3', '0.2.1-rc.1', '0.2.2-alpha.2', '0.2.2-rc.1', '0.2.2-rc.3', '0.2.3-alpha.1', '0.3.0', '1.0.0']) {
+  if (evaluatePluginCompatibility(pkg, {}, version)) fail('package.json', `minimum range rejects ${version}`);
+}
+for (const version of ['0.2.0-rc.1', '0.2.0-rc.2', '0.2.1-alpha.1', '0.2.1-alpha.2']) {
+  if (!evaluatePluginCompatibility(pkg, {}, version)) fail('package.json', `minimum range admits unsupported ${version}`);
 }
 const args = process.argv.slice(2);
 if (args.length && (args.length !== 2 || args[0] !== '--tarball')) throw new Error('Usage: node scripts/check-release.mjs [--tarball path]');

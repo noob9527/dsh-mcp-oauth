@@ -1,6 +1,6 @@
 # Official-client acceptance
 
-Use an isolated `DSH_HOME` and an unmodified npm installation of DSH 0.2.2-rc.2. Never use source overlays or workspace links as release evidence.
+Use an isolated `DSH_HOME` and an unmodified npm installation of a DSH version listed in the [compatibility matrix](compatibility.md). Never use source overlays or workspace links as release evidence.
 
 1. Run `pnpm pack`, then install the tarball with `dsh plugin --profile web add /absolute/path/to/noob9527-dsh-mcp-oauth-0.2.0-rc.1.tgz`.
 2. Run `dsh web --no-open --port 3097` with the same isolated home. Open the exact URL printed by DSH; its local login token must not be recorded in screenshots or documentation.
@@ -112,3 +112,9 @@ The unreleased 0.2.0-rc.1 build passed typecheck and 69 automated tests on 2026-
 A clean official DSH Web installation loaded the packed tarball without workspace links. In the settings page, manual CIMD configuration was saved, a malformed response was rejected and cleared, and cancellation removed the input. A new browser consent then redirected to a separate loopback display fixture. Copying its full URL into the masked plugin input completed exchange and discovery; the page showed **Authorized · Connected · Tools: 2**. The display fixture did not exchange tokens or forward responses. This used the repository's local OAuth/MCP and HTTPS CIMD fixtures, not a company service. The browser check verified consent, form submission and discovery, not a new model-driven chat call or Desktop qualification.
 
 The in-app browser's failed-navigation API exposed an internal error page instead of the original callback URL, so the UI run used the independent display fixture. No-listener operation is covered by automated tests that fail if the plugin tries to create a callback listener. For reproduction, start `tests/serve-cimd.ts` with `CIMD_CALLBACK_URL` set to a registered loopback URL, then follow the [manual authorization guide](manual-authorization.md) in a normal browser. Use an unused port when relying on the connection-failure address bar, or an isolated display fixture that does not log request URLs.
+
+## Minimum-version compatibility acceptance
+
+On 2026-11-16, the adapted 0.2.0-rc.1 candidate was built against DSH 0.2.1-alpha.3 and installed as a tarball in clean official Web profiles for 0.2.1-alpha.3 and 0.2.2-rc.1. Both passed plugin/settings loading, independent browser CIMD login, discovery of two tools, and a real-chat search returning `document-1`. The fixture confirmed exactly one search per client, two validated CIMD documents and no DCR registration. See the [17-version matrix](compatibility.md) for automated coverage and evidence limits.
+
+When preparing model credentials in an isolated home, retain the official versioned document format (`version: 1` with `refs`); a flat or incomplete credentials document prevents OAuth credential writes and can prevent DSH startup. Keep the file and values outside the repository.

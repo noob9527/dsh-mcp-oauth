@@ -1,5 +1,5 @@
 /** Audit published DSH peers, then typecheck/build/test each viable version in a private temporary root. */
-import { mkdtemp, readFile, writeFile, cp, mkdir, open } from 'node:fs/promises'
+import { mkdtemp, readFile, writeFile, cp, mkdir, open, readdir } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -50,6 +50,7 @@ for (const version of selected.length ? selected : versions) {
   const cwd = join(root, version); await mkdir(cwd)
   const dependencies = { ...pkg.dependencies, ...pkg.peerDependencies, ...pkg.devDependencies }
   for (const name of Object.keys(dependencies)) if (name === '@deepseek-ai/dsh' || name.startsWith('@deepseek-ai/dsh-')) dependencies[name] = version
+  dependencies['@deepseek-ai/cordis'] = records['@deepseek-ai/dsh'].versions[version].dependencies['@deepseek-ai/cordis']
   await writeFile(join(cwd, 'package.json'), JSON.stringify({ name: 'compatibility-fixture', private: true, type: 'module', dependencies }))
   for (const path of ['src', 'tests', 'scripts/build.mjs', 'tsconfig.json', 'tsconfig.build.json']) await cp(join(source, path), join(cwd, path), { recursive: true })
   // Model keys and existing DSH homes are not inherited by these keyless fixtures.
@@ -58,7 +59,7 @@ for (const version of selected.length ? selected : versions) {
   const commands = [
     ['install', 'pnpm', ['install', '--ignore-scripts', '--registry=https://registry.npmjs.org']],
     ['typecheck', 'pnpm', ['exec', 'tsc', '--noEmit']],
-    ['test', 'pnpm', ['exec', 'tsx', '--test', ...['config', 'connection', 'host', 'lifecycle', 'oauth'].map(name => `tests/${name}.test.ts`)]],
+    ['test', 'pnpm', ['exec', 'tsx', '--test', ...(await readdir(join(cwd, 'tests'))).filter(name => name.endsWith('.test.ts')).map(name => `tests/${name}`)]],
     ['build', 'node', ['scripts/build.mjs']],
     ['official-cli', 'pnpm', ['exec', 'dsh', 'web', '--help']],
   ]
