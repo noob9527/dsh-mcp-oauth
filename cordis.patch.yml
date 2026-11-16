@@ -1,0 +1,3 @@
+- insert:
+    - id: mcp-oauth
+      name: dsh-mcp-oauth
