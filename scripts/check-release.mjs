@@ -40,7 +40,7 @@ if (args.length) {
     if (!entries.includes(`package/${path}`)) fail(path, 'missing package entry');
   }
   const packed = JSON.parse(execFileSync('tar', ['-xOf', archive, 'package/package.json'], { encoding: 'utf8' }));
-  if (packed.license !== 'MIT' || packed.version !== pkg.version) fail(archive, 'package metadata differs');
+  if (packed.name !== pkg.name || packed.license !== 'MIT' || packed.version !== pkg.version) fail(archive, 'package metadata differs');
 }
 if (failures.length) {
   console.error(failures.join('\n'));

@@ -1,5 +1,5 @@
 {
-  "name": "dsh-mcp-oauth",
+  "name": "@noob9527/dsh-mcp-oauth",
   "version": "0.1.0",
   "description": "OAuth MCP tools for unmodified DeepSeek Harness",
   "type": "module",
@@ -95,5 +95,17 @@
     "oauth",
     "pkce",
     "cimd"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/noob9527/dsh-mcp-oauth.git"
+  },
+  "homepage": "https://github.com/noob9527/dsh-mcp-oauth#readme",
+  "bugs": {
+    "url": "https://github.com/noob9527/dsh-mcp-oauth/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
 }

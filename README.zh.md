@@ -6,7 +6,7 @@
 
 ## 状态与兼容性
 
-本项目是独立社区插件，并非 DeepSeek 官方产品。0.1.0 为初始预览版，目前尚未发布 npm 包。
+本项目是独立社区插件，并非 DeepSeek 官方产品。0.1.0 为初始预览版。
 
 | 客户端 | 验证状态 |
 | --- | --- |
@@ -15,7 +15,21 @@
 | 其他 DSH 版本 | 未声明兼容 |
 | 远程或多人共享 DSH | 不支持 |
 
-## 从源码安装与登录
+## 从 npm 安装
+
+需要 Node 24.9+ 和未经修改的官方 DSH 0.2.2-rc.2。公开包名为 `@noob9527/dsh-mcp-oauth`。
+
+2026-11-16 核对的发布状态：npm 已接受 0.1.0 上传，但公开 registry 查询仍返回 404，尚未验证通过 npm 安装。包可用前，请使用下方源码打包安装方式。
+
+包可用后，安装预览版：
+
+```sh
+dsh plugin --profile web add @noob9527/dsh-mcp-oauth@0.1.0
+```
+
+无 scope 的 `dsh-mcp-oauth` 属于其他项目。从本地旧包迁移时，先移除旧插件条目，再安装新包，不要同时启用两者。使用相同 DSH profile 和 home，以保留本机服务配置和授权记录。
+
+## 从源码安装
 
 需要 Node **24.9+**、pnpm **12.5.1**，以及未经修改的官方 DSH **0.2.2-rc.2**。克隆本仓库后，在仓库目录运行：
 
@@ -24,12 +38,14 @@ pnpm install --frozen-lockfile --ignore-scripts
 pnpm run typecheck
 pnpm test
 pnpm pack --pack-destination artifacts
-dsh plugin --profile web add "$(pwd)/artifacts/dsh-mcp-oauth-0.1.0.tgz"
+dsh plugin --profile web add "$(pwd)/artifacts/noob9527-dsh-mcp-oauth-0.1.0.tgz"
 ```
 
-测试需要支持 `req -addext` 的 OpenSSL；自动化测试不需要模型 API Key 或业务 MCP 服务。DSH 提示需要重启时，重启后继续。如果使用自定义 `DSH_HOME`，安装插件和启动 DSH 时必须使用相同值。只有维护者将包发布到你配置的 registry 后，才能按包名安装；将源码发布到 GitHub 不会自动发布 npm 包。
+测试需要支持 `req -addext` 的 OpenSSL；自动化测试不需要模型 API Key 或业务 MCP 服务。DSH 提示需要重启时，重启后继续。如果使用自定义 `DSH_HOME`，安装插件和启动 DSH 时必须使用相同值。通过 npm 安装时，如无法解析包名，请检查 `npm config get registry`；公开 registry 为 `https://registry.npmjs.org/`。
 
 Desktop 使用独立 profile，目前尚未完成其安装和 OAuth 验收。
+
+## 登录
 
 进入“Plugins → Built-in plugin settings → OAuth MCP”（当前官方扩展位把设置入口放在这个分组中），添加服务、保存并点击“登录”，随后打开授权页面。浏览器必须运行在 DSH 所在的电脑上。回调页只确认已收到授权响应；最终授权状态和工具连接状态分别显示在 DSH 中。
 
@@ -52,6 +68,12 @@ Desktop 使用独立 profile，目前尚未完成其安装和 OAuth 验收。
 刷新 token 不主动中断已受理的长调用。HTTP 401 最多触发一次 SDK 认证后重发；断线或超时不会自动重放工具调用。出现“结果未知”时，先核查服务端执行情况，再决定是否重试。
 
 首版只支持本机 Web/Desktop，不支持远程回调、旧版 SSE/stdio、MCP Tasks、资源浏览和提示词浏览。
+
+## 升级与卸载
+
+使用 `dsh plugin --profile web add @noob9527/dsh-mcp-oauth@<version>` 安装指定版本后重启 DSH。升级前先确认该版本声明的 DSH 兼容范围。
+
+卸载命令为 `dsh plugin --profile web remove @noob9527/dsh-mcp-oauth`，完成后重启 DSH。若需同时清除本机服务配置和授权，请在卸载前通过插件设置页删除服务。以上操作始终使用相同 `DSH_HOME`。
 
 ## 开发与验收
 

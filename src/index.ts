@@ -155,6 +155,6 @@ export function withCallbackListener(receiveCallback: typeof listenCallback) {
 async function mountPlugin(ctx: Context, receiveCallback: typeof listenCallback): Promise<void> {
   const service = new McpOAuth(ctx, receiveCallback)
   ctx.effect(() => () => service.stop(), 'mcp-oauth: connection and credential ownership')
-  ctx.effect(() => ctx.typert.register({ package: 'dsh-mcp-oauth', face: 'host', schemas: [], model: { services: [], events: [], objects: [] }, invocations: remoteInfo.descriptors }), 'mcp-oauth: host invocation descriptors')
+  ctx.effect(() => ctx.typert.register({ package: '@noob9527/dsh-mcp-oauth', face: 'host', schemas: [], model: { services: [], events: [], objects: [] }, invocations: remoteInfo.descriptors }), 'mcp-oauth: host invocation descriptors')
   await service.start()
 }

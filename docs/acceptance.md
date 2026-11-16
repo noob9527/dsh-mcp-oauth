@@ -2,7 +2,7 @@
 
 Use an isolated `DSH_HOME` and an unmodified npm installation of DSH 0.2.2-rc.2. Never use source overlays or workspace links as release evidence.
 
-1. Run `pnpm pack`, then install the tarball with `dsh plugin --profile web add /absolute/path/to/dsh-mcp-oauth-0.1.0.tgz`.
+1. Run `pnpm pack`, then install the tarball with `dsh plugin --profile web add /absolute/path/to/noob9527-dsh-mcp-oauth-0.1.0.tgz`.
 2. Run `dsh web --no-open --port 3097` with the same isolated home. Open the exact URL printed by DSH; its local login token must not be recorded in screenshots or documentation.
 3. Run `pnpm exec tsx tests/serve-fixture.ts`. Add its printed MCP endpoint in Plugins → OAuth MCP, use DCR and a free permitted loopback callback port.
 4. Sign in, open the authorization page and approve. Verify that authorization succeeds, the connection becomes connected and two tools are listed.
@@ -16,6 +16,12 @@ The fixture contains no business environment or personal data. Do not record bro
 ## Evidence status
 
 The automated protocol suite and actual client acceptance are separate evidence categories. The implementation session records executed checks in its delivery report; unexecuted model, Desktop and visual checks must not be described as passed.
+
+## Scoped package installation
+
+On 2026-11-16, the packed `@noob9527/dsh-mcp-oauth@0.1.0` was installed through the official DSH plugin command into a new isolated home. The Web plugin list displayed the scoped package as enabled, and OAuth MCP settings loaded the empty service list through the Host API. The 47 automated tests and typecheck passed after the package and Host/Client identifiers changed.
+
+This verifies local tarball installation and settings loading, not installation from npm. The registry accepted the 0.1.0 upload but still returned 404 at the last check on that date. Public download and installation remain pending. Earlier records below retain their original artifact names; they do not claim that every scenario was rerun on the scoped release artifact.
 
 ## Local CIMD Web acceptance
 

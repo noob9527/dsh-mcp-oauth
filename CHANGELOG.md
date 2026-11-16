@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased — 0.1.0 preview
+## 0.1.0 — 2026-11-16
+
+- Public npm identity: `@noob9527/dsh-mcp-oauth`, including scoped Host and Client module registration.
 
 - Standalone Host/Client plugin targeting unmodified DSH 0.2.2-rc.2.
 - Streamable HTTP tools with OAuth Authorization Code + PKCE, CIMD, pre-registration and DCR.
@@ -8,4 +10,4 @@
 - Service settings with English and Chinese labels.
 - Deterministic local OAuth/MCP and HTTPS metadata fixtures; Web acceptance and failure matrix.
 
-Desktop qualification and npm publication remain pending. This entry does not announce a released package.
+Initial preview release. Desktop qualification remains pending.

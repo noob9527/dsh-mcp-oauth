@@ -6,9 +6,9 @@ The project uses MIT. Review the license holder and existing Git author informat
 
 1. Review `git status`, `git diff --check` and `git diff`; do not stage ignored evidence, credentials or generated packages.
 2. Run the checks in CONTRIBUTING.md. Inspect the tarball file list and generated JavaScript.
-3. Create an empty repository in the intended GitHub account or organization. Use the repository name `dsh-mcp-oauth`; do not initialize a second README or license remotely.
-4. Once its URL is known, add matching `repository`, `homepage` and `bugs` fields to package.json. No account URL is guessed in this repository.
-5. Commit reviewed files, configure `origin` with the actual repository URL and push the intended branch. No script in this project performs these steps automatically.
+3. Verify that `origin` points to the public `noob9527/dsh-mcp-oauth` GitHub repository and that package repository, homepage and issue links match it.
+4. Review and commit the release changes, then push the intended branch. No script in this project performs these steps automatically.
+5. Wait for the GitHub CI checks for that commit before publishing its package.
 6. Enable private vulnerability reporting. Choose a default branch and protect it with the CI checks after their first successful GitHub run. Review repository permissions and enabled Actions.
 
 Suggested description: OAuth MCP tools for unmodified DeepSeek Harness, with PKCE, CIMD and credential refresh.
@@ -25,12 +25,20 @@ pnpm run check:release
 pnpm run typecheck
 pnpm test
 pnpm pack --pack-destination artifacts
-node scripts/check-release.mjs --tarball artifacts/dsh-mcp-oauth-0.1.0.tgz
+node scripts/check-release.mjs --tarball artifacts/noob9527-dsh-mcp-oauth-0.1.0.tgz
 ```
 
 Manually create a GitHub prerelease and attach the reviewed tarball if preview distribution is desired. A source release and an npm release are distinct operations.
 
-The original distribution target is a private npm registry. Configure the registry and credentials locally or in the deployment environment; do not commit .npmrc or tokens. The unscoped package name requires a registry that supports unscoped private packages. npmjs private packages require a scope and coordinated package/module identifier changes. Public npm publishing requires a separate decision about name ownership and release readiness. No workflow automatically publishes to either registry type.
+The distribution target is the public npm registry under `@noob9527/dsh-mcp-oauth`. Package metadata fixes the registry and public access. Authenticate as an account permitted to publish under the `noob9527` scope; keep credentials outside this repository. Review the exact tarball with `npm publish ./artifacts/noob9527-dsh-mcp-oauth-0.1.0.tgz --dry-run`, then publish that same file with `npm publish ./artifacts/noob9527-dsh-mcp-oauth-0.1.0.tgz --access public`. Verify the registry version and install the published package into a clean official DSH profile before announcing it. No workflow automatically publishes npm packages.
+
+## Authentication and post-publication checks
+
+Before publishing, check `npm config get registry` and `npm whoami --registry=https://registry.npmjs.org/`. The expected registry is `https://registry.npmjs.org/` and the account must have access to the package scope. A successful login alone does not satisfy npm's publishing authentication requirements. Complete the account's 2FA/browser verification when requested; do not put tokens, one-time codes or verification URLs in repository files or CI logs.
+
+An exit code of zero can mean the upload was accepted while npm still processes the package. If the CLI reports processing and public lookup returns 404, wait and check again; do not repeatedly publish the same version. Confirm `npm view @noob9527/dsh-mcp-oauth@0.1.0 version dist.shasum --registry=https://registry.npmjs.org/`, compare the package digest, and install by registry package name in a clean official DSH profile. Only then mark registry installation as verified and remove any pending-availability notice from the READMEs and acceptance record.
+
+Published name/version pairs cannot be overwritten. Repository documentation fixes after publication do not update the README bundled in that tarball; include them in a subsequent package version when needed. Keep the reviewed release tarball intact for digest comparison.
 
 ## Evidence limits
 

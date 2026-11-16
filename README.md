@@ -6,7 +6,7 @@ OAuth-protected MCP tools for an unmodified DeepSeek Harness installation. The p
 
 ## Status and compatibility
 
-Independent community plugin; not an official DeepSeek product. Version 0.1.0 is an initial preview, not a published npm release.
+Independent community plugin; not an official DeepSeek product. Version 0.1.0 is an initial preview.
 
 | Surface | Status |
 | --- | --- |
@@ -14,6 +14,20 @@ Independent community plugin; not an official DeepSeek product. Version 0.1.0 is
 | Official Desktop | Intended scope; acceptance pending |
 | Other DSH versions | Not declared compatible |
 | Remote or shared multi-user DSH | Not supported |
+
+## Install from npm
+
+Requires Node 24.9+ and an unmodified official DSH 0.2.2-rc.2 installation. The public package name is `@noob9527/dsh-mcp-oauth`.
+
+Publication status checked on 2026-11-16: npm accepted the 0.1.0 upload, but public registry lookup still returned 404. Registry installation is not yet verified; use the source/tarball workflow below until the package becomes available.
+
+Once available, install the preview release:
+
+```sh
+dsh plugin --profile web add @noob9527/dsh-mcp-oauth@0.1.0
+```
+
+The unscoped `dsh-mcp-oauth` package is a different project. When migrating a local unscoped installation, remove its plugin entry before installing this package; do not enable both together. Use the same DSH profile and home to retain locally stored service settings and grants.
 
 ## Install from source
 
@@ -24,12 +38,14 @@ pnpm install --frozen-lockfile --ignore-scripts
 pnpm run typecheck
 pnpm test
 pnpm pack --pack-destination artifacts
-dsh plugin --profile web add "$(pwd)/artifacts/dsh-mcp-oauth-0.1.0.tgz"
+dsh plugin --profile web add "$(pwd)/artifacts/noob9527-dsh-mcp-oauth-0.1.0.tgz"
 ```
 
-Tests require OpenSSL supporting `req -addext`. No model API key or business MCP endpoint is needed for automated tests. Restart DSH when prompted. If DSH uses a custom `DSH_HOME`, use the same value for plugin installation and startup. The package-name install command becomes available only after a maintainer publishes to your configured registry; GitHub source publication alone does not publish an npm package.
+Tests require OpenSSL supporting `req -addext`. No model API key or business MCP endpoint is needed for automated tests. Restart DSH when prompted. If DSH uses a custom `DSH_HOME`, use the same value for plugin installation and startup. For npm installation, check `npm config get registry` if the package cannot be resolved; the public registry is `https://registry.npmjs.org/`.
 
 Desktop has a separate profile; installation and OAuth behavior there are not yet qualified.
+
+## Sign in
 
 Open **Plugins → Built-in plugin settings → OAuth MCP → Add service** (the current public DSH slot places this settings entry in that group). Enter the service URL and registration settings, save, click **Sign in**, then **Open authorization page**. Approve in the browser on the computer running DSH. The callback page only confirms receipt; the DSH page separately displays authorization and connection completion. Tools become available to normal chat once connected.
 
@@ -61,6 +77,12 @@ Disabling preserves authorization. Clearing authorization disconnects and delete
 Requests refresh an expiring token when possible. Concurrent refresh work is coalesced; a 401 permits one SDK authentication retry. Refresh alone does not interrupt accepted calls. Network failures and tool timeouts never cause automatic replay; an unknown outcome must be checked before manually repeating a state-changing tool.
 
 Only local Web and Desktop are in scope. No remote-host browser callbacks, legacy SSE/stdio transports, MCP Tasks, resource browsing or prompt browsing are provided.
+
+## Upgrade and uninstall
+
+Install a supported release with `dsh plugin --profile web add @noob9527/dsh-mcp-oauth@<version>`, then restart DSH. Check that release's DSH compatibility before upgrading.
+
+To uninstall, run `dsh plugin --profile web remove @noob9527/dsh-mcp-oauth` and restart DSH. If you want to remove saved service settings and grants, delete the services in the plugin settings before uninstalling. Keep the same `DSH_HOME` for these commands.
 
 ## Development and validation
 
