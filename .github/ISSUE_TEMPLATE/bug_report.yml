@@ -1,0 +1,25 @@
+name: Bug report
+description: Report a reproducible problem with synthetic data
+body:
+  - type: markdown
+    attributes:
+      value: Do not include API keys, tokens, client secrets, authorization codes, credential files or sensitive service URLs. See SECURITY.md for private reporting.
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Plugin version, exact DSH version, OS, Node version, and Web or Desktop.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Steps using local fixtures or reserved example domains; include expected and actual behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Sanitized diagnostics
+      description: Error codes and relevant redacted output only.

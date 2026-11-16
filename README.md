@@ -4,17 +4,34 @@ OAuth-protected MCP tools for an unmodified DeepSeek Harness installation. The p
 
 [中文](README.zh.md)
 
-## Install
+## Status and compatibility
 
-Target runtime: DSH **0.2.2-rc.2**, Node **24.9+**. Compatibility with other releases is not declared. Configure your private registry using your normal npm configuration; never commit registry credentials.
+Independent community plugin; not an official DeepSeek product. Version 0.1.0 is an initial preview, not a published npm release.
+
+| Surface | Status |
+| --- | --- |
+| Official DSH 0.2.2-rc.2 Web, local macOS | Browser OAuth and real chat tool calls verified |
+| Official Desktop | Intended scope; acceptance pending |
+| Other DSH versions | Not declared compatible |
+| Remote or shared multi-user DSH | Not supported |
+
+## Install from source
+
+Requires Node **24.9+**, pnpm **12.5.1**, and an unmodified official DSH **0.2.2-rc.2** installation. Clone this repository and run these commands from its directory:
 
 ```sh
-dsh plugin --profile web add dsh-mcp-oauth@0.1.0
+pnpm install --frozen-lockfile --ignore-scripts
+pnpm run typecheck
+pnpm test
+pnpm pack --pack-destination artifacts
+dsh plugin --profile web add "$(pwd)/artifacts/dsh-mcp-oauth-0.1.0.tgz"
 ```
 
-For Desktop, install through its Plugins page into its own profile. The CLI Web profile and Desktop profile are separate. Restart if DSH reports that a restart is required.
+Tests require OpenSSL supporting `req -addext`. No model API key or business MCP endpoint is needed for automated tests. Restart DSH when prompted. If DSH uses a custom `DSH_HOME`, use the same value for plugin installation and startup. The package-name install command becomes available only after a maintainer publishes to your configured registry; GitHub source publication alone does not publish an npm package.
 
-Open **Plugins → OAuth MCP → Add service**. Enter the service URL and registration settings, save, click **Sign in**, then **Open authorization page**. Approve in the browser on the computer running DSH. The callback page only confirms receipt; the DSH page separately displays authorization and connection completion. Tools become available to normal chat once connected.
+Desktop has a separate profile; installation and OAuth behavior there are not yet qualified.
+
+Open **Plugins → Built-in plugin settings → OAuth MCP → Add service** (the current public DSH slot places this settings entry in that group). Enter the service URL and registration settings, save, click **Sign in**, then **Open authorization page**. Approve in the browser on the computer running DSH. The callback page only confirms receipt; the DSH page separately displays authorization and connection completion. Tools become available to normal chat once connected.
 
 ## Configuration
 
@@ -48,7 +65,7 @@ Only local Web and Desktop are in scope. No remote-host browser callbacks, legac
 ## Development and validation
 
 ```sh
-pnpm install --ignore-scripts
+pnpm install --frozen-lockfile --ignore-scripts
 pnpm run typecheck
 pnpm test
 pnpm run build
@@ -69,14 +86,12 @@ See [acceptance](docs/acceptance.md) for the official-client workflow and curren
 - `MCP_CALL_OUTCOME_UNKNOWN`: inspect the operation on the server before retrying it.
 - `OAUTH_CONFIG_UNREADABLE`: repair the profile configuration file; the plugin does not discard unreadable configuration.
 
-## Private publication
+## Contributing and releases
 
-Run validation and pack first. Publish only after registry configuration and release approval are available:
-
-```sh
-pnpm publish --registry "$NPM_REGISTRY_URL" --no-git-checks
-```
-
-This unscoped package requires a private registry that supports unscoped private packages. npmjs private packages require an organization scope and a corresponding package/module ID change. No registry, token or organization name is embedded in the package.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development, [SECURITY.md](SECURITY.md) for sensitive reports, and [the release guide](docs/releasing.md) for publishing source or packages. GitHub CI checks, tests and builds the project without model credentials; a green CI run does not replace Desktop or real-chat acceptance.
 
 Authentication recovery failure withdraws the affected service’s tools and requires sign-in. A lost response or timeout reports an unknown outcome and never automatically replays tools/call; reconnect only reinitializes the connection and discovers tools. Closing a connection rejects new calls and drains admitted work. See the [failure acceptance matrix](docs/acceptance.md#high--and-medium-priority-failure-acceptance) for automated versus browser evidence.
+
+## License
+
+[MIT](LICENSE). Dependencies retain their own licenses.

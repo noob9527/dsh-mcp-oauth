@@ -4,17 +4,34 @@
 
 [English](README.md)
 
-## 安装与登录
+## 状态与兼容性
 
-首个目标版本为 DSH **0.2.2-rc.2**，Node **24.9+**。其他版本尚未声明兼容。使用本机 npm 配置接入私有 registry，不要提交 registry 凭据。
+本项目是独立社区插件，并非 DeepSeek 官方产品。0.1.0 为初始预览版，目前尚未发布 npm 包。
+
+| 客户端 | 验证状态 |
+| --- | --- |
+| 官方 DSH 0.2.2-rc.2 Web，本机 macOS | 已验证浏览器授权和真实聊天调用 |
+| 官方 Desktop | 计划支持，尚待验收 |
+| 其他 DSH 版本 | 未声明兼容 |
+| 远程或多人共享 DSH | 不支持 |
+
+## 从源码安装与登录
+
+需要 Node **24.9+**、pnpm **12.5.1**，以及未经修改的官方 DSH **0.2.2-rc.2**。克隆本仓库后，在仓库目录运行：
 
 ```sh
-dsh plugin --profile web add dsh-mcp-oauth@0.1.0
+pnpm install --frozen-lockfile --ignore-scripts
+pnpm run typecheck
+pnpm test
+pnpm pack --pack-destination artifacts
+dsh plugin --profile web add "$(pwd)/artifacts/dsh-mcp-oauth-0.1.0.tgz"
 ```
 
-Desktop 请通过其插件页面安装；它与 Web 使用不同 profile。DSH 提示需要重启时，重启后继续。
+测试需要支持 `req -addext` 的 OpenSSL；自动化测试不需要模型 API Key 或业务 MCP 服务。DSH 提示需要重启时，重启后继续。如果使用自定义 `DSH_HOME`，安装插件和启动 DSH 时必须使用相同值。只有维护者将包发布到你配置的 registry 后，才能按包名安装；将源码发布到 GitHub 不会自动发布 npm 包。
 
-进入“插件 → OAuth MCP”，添加服务、保存并点击“登录”，随后打开授权页面。浏览器必须运行在 DSH 所在的电脑上。回调页只确认已收到授权响应；最终授权状态和工具连接状态分别显示在 DSH 中。
+Desktop 使用独立 profile，目前尚未完成其安装和 OAuth 验收。
+
+进入“Plugins → Built-in plugin settings → OAuth MCP”（当前官方扩展位把设置入口放在这个分组中），添加服务、保存并点击“登录”，随后打开授权页面。浏览器必须运行在 DSH 所在的电脑上。回调页只确认已收到授权响应；最终授权状态和工具连接状态分别显示在 DSH 中。
 
 ## 配置
 
@@ -39,7 +56,7 @@ Desktop 请通过其插件页面安装；它与 Web 使用不同 profile。DSH �
 ## 开发与验收
 
 ```sh
-pnpm install --ignore-scripts
+pnpm install --frozen-lockfile --ignore-scripts
 pnpm run typecheck
 pnpm test
 pnpm run build
@@ -49,6 +66,12 @@ pnpm exec tsx tests/serve-fixture.ts
 
 本地测试服务提供确定性搜索、延迟返回和调用计数。CIMD 测试启动独立 HTTPS 文档服务，授权服务器在同意授权前实际抓取并校验客户端身份和回调地址。OpenSSL 为每次测试生成临时证书，仅测试授权服务器显式信任，TLS 校验保持开启。运行 `pnpm exec tsx tests/serve-cimd.ts` 可进行浏览器验收；这不代表验证了公网托管或第三方授权服务器。官方客户端验收步骤和已完成项目见 [验收说明](docs/acceptance.md)。
 
-私有发布前需配置 registry 和发布凭据，运行测试及打包。当前无 scope 的包名要求私有 registry 支持此类包；若使用 npmjs 私有包，需要组织 scope 并同步修改包与模块标识。项目不内置 registry 或业务服务信息。
+## 贡献与发布
+
+开发流程见 [CONTRIBUTING.md](CONTRIBUTING.md)，敏感问题报告见 [SECURITY.md](SECURITY.md)，源码与包的发布步骤见[发布指南](docs/releasing.md)。GitHub CI 不需要模型凭据；CI 通过不代表完成 Desktop 或真实聊天验收。
 
 认证恢复失败会注销受影响服务的工具并提示重新登录。响应丢失或超时会报告结果未知，不会自动重放 tools/call；重连仅重新初始化连接和发现工具。关闭连接会拒绝新调用并等待已受理工作结束。[故障验收矩阵](docs/acceptance.md#high--and-medium-priority-failure-acceptance)区分自动化测试与真实页面证据。
+
+## 许可证
+
+[MIT](LICENSE)。依赖保留各自的许可证。

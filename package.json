@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "OAuth MCP tools for unmodified DeepSeek Harness",
   "type": "module",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "engines": {
     "node": ">=24.9.0",
     "dsh": "0.2.2-rc.2"
@@ -24,7 +24,11 @@
     "cordis.patch.yml",
     "README.md",
     "README.zh.md",
-    "docs"
+    "docs",
+    "LICENSE",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md"
   ],
   "dsh": {
     "bundle": {
@@ -44,7 +48,8 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "prepack": "pnpm run typecheck && pnpm run build",
-    "acceptance": "node scripts/acceptance.mjs"
+    "acceptance": "node scripts/acceptance.mjs",
+    "check:release": "node scripts/check-release.mjs"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "4.1.0",
@@ -82,5 +87,13 @@
     "react": "^18.3.1",
     "tsx": "^4.20.0",
     "typescript": "~5.9.3"
-  }
+  },
+  "packageManager": "pnpm@12.5.1",
+  "keywords": [
+    "deepseek-harness",
+    "mcp",
+    "oauth",
+    "pkce",
+    "cimd"
+  ]
 }

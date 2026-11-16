@@ -1,0 +1,10 @@
+name: Feature request
+description: Describe a use case or compatibility request
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and proposed behavior
+      description: Include the relevant client/server versions without internal endpoints or credentials.
+    validations:
+      required: true
