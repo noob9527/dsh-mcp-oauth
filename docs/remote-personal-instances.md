@@ -4,6 +4,8 @@
 
 Remote callbacks require the unreleased 0.2.0-rc.1 build or later; npm 0.1.0 supports local callbacks only. Install a reviewed tarball until a remote-capable release is published. This mode does not modify official DSH.
 
+If no callback proxy can be configured, use [manual authorization response](manual-authorization.md). The proxy requirements below apply only to remote automatic callbacks.
+
 ## Deployment requirements
 
 Each person must have a dedicated DSH Host process, profile directory and credential store. The authenticated DSH Web connection must represent that instance's owner. A URL prefix alone does not establish isolation. Shared multi-user Hosts, multiple replicas of one instance and shared credential files are unsupported. Do not broaden the plugin's owner-only Remote API policy to work around access failures.
@@ -50,7 +52,7 @@ Host an HTTPS metadata document reachable by the authorization server. A separat
 
 In Plugins → Built-in plugin settings → OAuth MCP → Add service:
 
-- Select **Remote personal instance** under Deployment.
+- Select **Remote personal instance** under Callback mode.
 - Set **OAuth callback URL** to the exact public HTTPS URL in the document.
 - Set **Internal loopback listener port** to the proxy upstream port, for example `6274`.
 - Select CIMD and enter the metadata document URL; leave the pre-registered client ID and secret empty.

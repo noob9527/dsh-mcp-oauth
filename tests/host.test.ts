@@ -45,6 +45,7 @@ test('official Host gateway loads strict methods, persists services and withdraw
     ['list', {}],
     ['save', { config: serverSchema.parse({ id: 'guest', label: 'Guest', url: 'https://mcp.example.com/mcp' }) }],
     ['act', { id: 'one', action: 'login' }],
+    ['submitResponse', { id: 'one', response: 'https://callback.example.com/?code=private-code&state=private-state' }],
   ] as const) {
     await assert.rejects(async () => ctx.typertGateway.invoke({ peer: guest, namespace: 'mcpOAuth', method, args }))
   }

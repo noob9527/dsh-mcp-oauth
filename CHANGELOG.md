@@ -2,6 +2,8 @@
 
 ## Unreleased — 0.2.0-rc.1
 
+- Manual authorization response submission through an owner-only settings form, with no listener, one-use state and PKCE retained.
+
 - Remote personal-instance OAuth callbacks through an HTTPS reverse proxy, with a separate loopback listener port.
 - Deployment selection and bilingual guidance in settings.
 - Reject ambiguous callback parameters; preserve one-use state, PKCE and owner-only credential access.

@@ -106,6 +106,17 @@ export class McpOAuth extends TypertRemoteService {
     })
     return null
   }
+  /** Accept a sensitive response only for the owner's currently pending manual login. */
+  @Remote
+  async submitResponse(id: string, response: string): Promise<null> {
+    this.owner()
+    await this.serialize(async () => {
+      const entry = this.entries.get(id)
+      if (!entry || !entry.status.config.enabled || entry.status.authentication !== 'authorizing' || !entry.status.authorizationUrl) throw new OAuthMcpError('OAUTH_RESPONSE_INACTIVE')
+      entry.provider.submitResponse(response)
+    })
+    return null
+  }
   private async mount(config: ServerConfig, secret?: string): Promise<void> {
     if (this.closed) throw new OAuthMcpError('OAUTH_STOPPED')
     const key = this.key(config.id)

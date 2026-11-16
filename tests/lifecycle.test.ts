@@ -20,11 +20,13 @@ import { serverSchema, statusSchema } from '../src/config.ts'
 import { Provider, binding } from '../src/provider.ts'
 import { reserveCallback } from './callback-reservation.ts'
 import { fixture, approve } from './fixture.ts'
+import { authorizationResponse } from './manual-consent.ts'
 import { metadataHost } from './cimd-document.ts'
 
-async function host(t: TestContext) {
+async function host(t: TestContext, manual = false) {
   const callback = await reserveCallback(t)
-  const metadata = await metadataHost(callback.url); t.after(() => metadata.close())
+  const redirectUrl = manual ? 'https://callback.example.com/oauth/response' : callback.url
+  const metadata = await metadataHost(redirectUrl); t.after(() => metadata.close())
   const server = await fixture({ cimd: metadata }); t.after(() => server.close())
   const dir = await mkdtemp(join(tmpdir(), 'mcp-lifecycle-')); const ctx = new Context()
   t.after(async () => { await ctx.fiber.dispose(); await rm(dir, { recursive: true, force: true }) })
@@ -33,7 +35,7 @@ async function host(t: TestContext) {
   await ctx.plugin(Registry); await ctx.plugin(RemoteAccess); await ctx.plugin(Gateway)
   await ctx.plugin(Credentials, { path: credentials, watch: false }); await ctx.plugin(Authorization)
   await ctx.plugin(SystemPrompt); await ctx.plugin(Tools)
-  const plugin = withCallbackListener(callback.receive); const fiber = ctx.plugin(plugin); await fiber
+  const plugin = withCallbackListener(manual ? async () => { throw new Error('Unexpected manual listener') } : callback.receive); const fiber = ctx.plugin(plugin); await fiber
   const peer = new Peer(ctx, { principal: { kind: 'owner' } })
   const call = (method: string, args: Record<string, unknown> = {}) => ctx.typertGateway.invoke({ peer, namespace: 'mcpOAuth', method, args })
   const row = async () => z.array(statusSchema).parse(await call('list'))[0]!
@@ -41,7 +43,7 @@ async function host(t: TestContext) {
     const deadline = Date.now() + 5000
     for (;;) { const value = await row(); if (predicate(value)) return value; if (Date.now() > deadline) throw new Error('Host state did not settle'); await delay(10) }
   }
-  const config = serverSchema.parse({ id: 'test', label: 'Test', url: server.origin + '/mcp', mode: 'cimd', metadataUrl: metadata.url, redirectUrl: callback.url })
+  const config = serverSchema.parse({ id: 'test', label: 'Test', url: server.origin + '/mcp', mode: 'cimd', metadataUrl: metadata.url, redirectUrl, callbackMode: manual ? 'manual' : 'local' })
   await call('save', { config })
   const login = async () => { await call('act', { id: 'test', action: 'login' }); const pending = await until(value => !!value.authorizationUrl); await approve(pending.authorizationUrl); await until(value => value.connection === 'connected') }
   return { ctx, server, callback, metadata, dir, credentials, config, call, row, until, login, fiber, plugin }
@@ -117,4 +119,39 @@ test('CIMD authorization timeout closes its callback listener', async t => {
   const provider = new Provider(config, { read: async () => undefined, write: async () => {} }, callback.receive); t.after(() => provider.stop())
   await assert.rejects(provider.login(new AbortController().signal, () => {}))
   assert.equal(callback.server.listening, false); assert.equal(provider.authorized, false)
+})
+
+for (const action of ['clear', 'disable', 'unload', 'cancel'] as const) test(`manual Host: ${action} rejects late response without writing credentials`, async t => {
+  const f = await host(t, true)
+  await f.call('act', { id: 'test', action: 'login' })
+  const waiting = await f.until(row => !!row.authorizationUrl)
+  const response = await authorizationResponse(waiting.authorizationUrl)
+  if (action === 'unload') await f.fiber.dispose()
+  else if (action === 'disable') await f.call('save', { config: { ...f.config, enabled: false } })
+  else await f.call('act', { id: 'test', action })
+  await assert.rejects(f.call('submitResponse', { id: 'test', response }))
+  assert.equal(f.server.state.tokenExchanges, 0)
+})
+
+test('manual Host response is owner-only, consumed once, and absent from state, config, grant and logs', async t => {
+  const logs: unknown[][] = []
+  for (const method of ['log', 'info', 'warn', 'error', 'debug'] as const) t.mock.method(console, method, (...args: unknown[]) => logs.push(args))
+  const f = await host(t, true)
+  await f.call('act', { id: 'test', action: 'login' })
+  const waiting = await f.until(row => !!row.authorizationUrl)
+  const response = await authorizationResponse(waiting.authorizationUrl)
+  const code = new URL(response).searchParams.get('code')!
+  const guest = new Peer(f.ctx, { principal: { kind: 'oauth-test-guest' } })
+  await assert.rejects(f.ctx.typertGateway.invoke({ peer: guest, namespace: 'mcpOAuth', method: 'submitResponse', args: { id: 'test', response } }))
+  assert.equal(f.server.state.tokenExchanges, 0)
+  await assert.rejects(f.call('submitResponse', { id: 'test', response: response.replace('state=', 'invalid=') }), error => !String(error).includes(code))
+  assert.equal(await f.call('submitResponse', { id: 'test', response }), null)
+  await assert.rejects(f.call('submitResponse', { id: 'test', response }))
+  await f.until(row => row.connection === 'connected')
+  for (const text of [JSON.stringify(await f.call('list')), await readFile(join(f.dir, 'mcp-oauth', 'servers.json'), 'utf8'), await readFile(f.credentials, 'utf8'), JSON.stringify(logs)]) {
+    assert(!text.includes(code)); assert(!text.includes(response))
+  }
+  assert.equal(f.server.state.tokenExchanges, 1)
+  assert(f.ctx.tools.get('mcp__test__search'))
+  assert.equal(f.ctx.tools.get('submitResponse'), undefined)
 })

@@ -6,7 +6,7 @@ OAuth-protected MCP tools for an unmodified DeepSeek Harness installation. The p
 
 ## Status and compatibility
 
-Independent community plugin; not an official DeepSeek product. The npm 0.1.0 release supports local callbacks. The current 0.2.0-rc.1 development build adds remote personal-instance callbacks and is not yet published.
+Independent community plugin; not an official DeepSeek product. The npm 0.1.0 release supports local callbacks. The current 0.2.0-rc.1 development build adds remote personal-instance callbacks and manual response submission and is not yet published.
 
 | Surface | Status |
 | --- | --- |
@@ -62,7 +62,7 @@ The initial service list is empty. A placeholder endpoint is `https://mcp.exampl
 | Registration mode | Automatic, CIMD, pre-registered or DCR |
 | Client metadata document URL | Public HTTPS CIMD document maintained by the client operator |
 | Client ID / secret | Pre-registered identity; the secret is stored separately |
-| Deployment | Local or remote personal instance; remote mode requires an administrator-configured HTTPS proxy |
+| Callback mode | Local automatic, remote HTTPS automatic, or manual response paste; remote automatic requires an administrator-configured proxy |
 | Internal loopback listener port | Remote mode only; defaults to 6274, always bound to 127.0.0.1 |
 | Callback URL | Defaults to `http://127.0.0.1:6274/oauth/callback`; must match permitted redirects |
 | Scopes | Optional space-separated scope names |
@@ -70,6 +70,8 @@ The initial service list is empty. A placeholder endpoint is `https://mcp.exampl
 Automatic mode uses configured pre-registration first, then CIMD when configured and supported, then dynamic registration. Explicit CIMD fails when unsupported. The plugin does not host a public CIMD document. Configure its redirect URI before login; the plugin does not silently select another port if the configured port is occupied.
 
 Advanced defaults: connection timeout 30 seconds, sign-in timeout 5 minutes, tool deadline 10 minutes, refresh lead time 60 seconds, 5 reconnect attempts with a maximum delay of 30 seconds. Tool deadlines are total deadlines, not progress-reset timers.
+
+For remote instances without a callback proxy, choose **Manual response paste**. After browser consent, paste the complete callback URL into the service’s pending-login form. No listener starts; PKCE, one-time state and registered redirect validation remain required. See [manual authorization](docs/manual-authorization.md).
 
 ## Credentials and lifecycle
 

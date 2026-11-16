@@ -12,5 +12,6 @@ function method(parameters: [string, z.ZodType][], result: z.ZodType): TypertRem
 export const remoteInfo = createTypertRemoteInfo({ package: '@noob9527/dsh-mcp-oauth', methods: {
   'mcpOAuth/list': method([], z.array(statusSchema)),
   'mcpOAuth/save': method([['config', serverSchema], ['secret', z.string().max(8192).optional()]], z.null()),
+  'mcpOAuth/submitResponse': method([['id', z.string().max(32)], ['response', z.string().min(1).max(16384)]], z.null()),
   'mcpOAuth/act': method([['id', z.string()], ['action', actionSchema]], z.null()),
 } }, z)

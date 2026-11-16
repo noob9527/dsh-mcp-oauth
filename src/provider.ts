@@ -5,6 +5,7 @@ import { auth, extractResourceMetadataUrl, type AuthProvider, type OAuthClientPr
 import { z } from 'zod'
 import type { ServerConfig } from './config.ts'
 import { OAuthMcpError } from './errors.ts'
+import { ManualResponse } from './manual-response.ts'
 import { listenCallback } from './callback.ts'
 
 const tokensSchema = z.object({ access_token: z.string(), token_type: z.string(), refresh_token: z.string().optional(), expires_in: z.number().optional(), scope: z.string().optional(), issuer: z.string().optional() }).passthrough()
@@ -21,6 +22,7 @@ export function binding(config: ServerConfig): string {
 export class Provider implements OAuthClientProvider {
   private grant: Grant
   private verifier = ''
+  private manual?: ManualResponse
   private discovery?: OAuthDiscoveryState
   private active?: { state: string; signal: AbortSignal; notify: (url: string) => void }
   private refresh?: Promise<void>
@@ -103,6 +105,11 @@ export class Provider implements OAuthClientProvider {
     this.loginTask = this.runLogin(signal, notify).finally(() => { this.loginTask = undefined })
     return this.loginTask
   }
+  /** Submit through the owner-only settings API; no URL fetch or credential logging. */
+  submitResponse(response: string): void {
+    if (!this.active || !this.manual || this.stopped || this.active.signal.aborted) throw new OAuthMcpError('OAUTH_RESPONSE_INACTIVE')
+    this.manual.submit(response, this.discovery?.authorizationServerMetadata?.issuer)
+  }
   private async runLogin(signal: AbortSignal, notify: (url: string) => void): Promise<void> {
     if (this.active) throw new OAuthMcpError('OAUTH_BUSY')
     await this.refresh
@@ -110,7 +117,10 @@ export class Provider implements OAuthClientProvider {
     this.active = { state: randomBytes(32).toString('hex'), signal: lifetime, notify }
     let callback: Awaited<ReturnType<typeof listenCallback>> | undefined
     try {
-      callback = await this.receiveCallback(this.redirectUrl, this.active.state, lifetime, undefined, this.config.callbackMode === 'remote' ? this.config.callbackPort : undefined)
+      if (this.config.callbackMode === 'manual') {
+        this.manual = new ManualResponse(this.redirectUrl, this.active.state, lifetime)
+        callback = this.manual
+      } else callback = await this.receiveCallback(this.redirectUrl, this.active.state, lifetime, undefined, this.config.callbackMode === 'remote' ? this.config.callbackPort : undefined)
       const challenge = await this.fetch(this.config.url, { method: 'GET' })
       const resourceMetadataUrl = extractResourceMetadataUrl(challenge)
       await challenge.body?.cancel()
@@ -122,7 +132,7 @@ export class Provider implements OAuthClientProvider {
       }
       lifetime.throwIfAborted()
       if (!this.grant.tokens) throw new OAuthMcpError('OAUTH_LOGIN_REQUIRED')
-    } finally { await callback?.close(); this.active = undefined; this.verifier = '' }
+    } finally { await callback?.close(); this.manual = undefined; this.active = undefined; this.verifier = '' }
   }
   private renew(resourceMetadataUrl?: URL): Promise<void> {
     if (this.active) return Promise.reject(new OAuthMcpError('OAUTH_BUSY'))

@@ -13,12 +13,33 @@ import { serverSchema, statusSchema, type ServerConfig, type ServerStatus, type 
 import { en, zh, type Key } from './locales.ts'
 
 declare module '@deepseek-ai/dsh-client-ui-slots' { interface LocaleNamespaceMap { 'mcp.oauth': Key } }
-type Invoke = (method: 'list' | 'save' | 'act', input: object, signal?: AbortSignal) => Promise<unknown>
+type Invoke = (method: 'list' | 'save' | 'act' | 'submitResponse', input: object, signal?: AbortSignal) => Promise<unknown>
 type Props = PropsRuntime<'plugins.item'> & PropsLocale<'mcp.oauth'> & { invoke: Invoke }
 const stack: CSSProperties = { display: 'grid', gap: 12, minWidth: 0 }
 const actions: CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: 8 }
 const box: CSSProperties = { ...stack, padding: 16, border: '1px solid var(--dsw-border)', borderRadius: 12, overflowWrap: 'anywhere' }
 const numeric = ['connectTimeoutMs', 'authTimeoutMs', 'toolTimeoutMs', 'refreshSkewMs', 'reconnectAttempts', 'reconnectMaxDelayMs'] as const
+/** Input lives only for one pending attempt and is cleared before submission. */
+function ManualInput({ id, t, invoke }: { id: string; t: Props['t']; invoke: Invoke }) {
+  const [response, setResponse] = useState('')
+  const [pending, setPending] = useState(false)
+  const [received, setReceived] = useState(false)
+  const [error, setError] = useState('')
+  return <form style={stack} onSubmit={async event => {
+    event.preventDefault()
+    if (pending || received) return
+    const value = response; setResponse(''); setPending(true); setError('')
+    try { await invoke('submitResponse', { id, response: value }); setReceived(true) }
+    catch { setError(t('manualInvalid')) }
+    finally { setPending(false) }
+  }}>
+    <p>{t('manualInstructions')}</p>
+    <label style={stack}>{t('manualResponse')}<Input type="password" autoComplete="off" spellCheck={false} maxLength={16384} value={response} disabled={pending || received} onChange={event => setResponse(event.target.value)} /></label>
+    <Button type="submit" disabled={pending || received || !response.trim()}>{t('manualSubmit')}</Button>
+    {error && <p role="alert">{error}</p>}
+    {received && <p role="status">{t('manualReceived')}</p>}
+  </form>
+}
 function Card({ t, view, invoke }: Props) {
   const [rows, setRows] = useState<ServerStatus[]>()
   const [error, setError] = useState('')
@@ -60,6 +81,7 @@ function Card({ t, view, invoke }: Props) {
       <span role="status">{t(row.authentication)} · {t(row.connection === 'failed' ? 'connectionFailed' : row.connection)} · {t('tools')}: {row.toolCount}</span>
       {row.error && <p role="alert">{t('failed')} ({row.error})</p>}
       {row.authorizationUrl && <a href={row.authorizationUrl} target="_blank" rel="noopener noreferrer">{t('open')}</a>}
+      {row.config.callbackMode === 'manual' && row.authentication === 'authorizing' && row.authorizationUrl && <ManualInput key={row.authorizationUrl} id={row.config.id} t={t} invoke={invoke} />}
       <div style={actions}>
         <Button disabled={busy || !row.config.enabled} onClick={() => act(row.config.id, row.authentication === 'authorizing' ? 'cancel' : 'login')}>{t(row.authentication === 'authorizing' ? 'cancel' : 'login')}</Button>
         <Button disabled={busy || row.authentication !== 'authorized' || !row.config.enabled} onClick={() => act(row.config.id, 'reconnect')}>{t('reconnect')}</Button>
@@ -77,9 +99,9 @@ function Card({ t, view, invoke }: Props) {
       void run(async () => { await invoke('save', { config: parsed.data, ...(secret ? { secret } : {}) }); setDraft(undefined); setSecret('') })
     }}>
       <label style={stack}>{t('callbackMode')}<select disabled={busy} value={draft.callbackMode} onChange={event => setDraft({ ...draft, callbackMode: serverSchema.shape.callbackMode.parse(event.target.value) })}>
-        <option value="local">{t('localMode')}</option><option value="remote">{t('remoteMode')}</option>
+        <option value="local">{t('localMode')}</option><option value="remote">{t('remoteMode')}</option><option value="manual">{t('manualMode')}</option>
       </select></label>
-      <p>{t(draft.callbackMode === 'remote' ? 'remoteHelp' : 'local')}</p>
+      <p>{t(draft.callbackMode === 'manual' ? 'manualHelp' : draft.callbackMode === 'remote' ? 'remoteHelp' : 'local')}</p>
       {draft.callbackMode === 'remote' && <label style={stack}>{t('callbackPort')}<Input type="number" disabled={busy} value={draft.callbackPort} onChange={event => setDraft({ ...draft, callbackPort: Number(event.target.value) })} /></label>}
       {(['id', 'label', 'url', 'clientId', 'metadataUrl', 'redirectUrl', 'scope'] as const).map(key => <label key={key} style={stack}>{t(key)}
         <Input value={draft[key]} disabled={busy || key === 'id' && editing} onChange={event => setDraft({ ...draft, [key]: event.target.value })} />
