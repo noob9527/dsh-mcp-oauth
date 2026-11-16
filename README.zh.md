@@ -104,3 +104,9 @@ pnpm exec tsx tests/serve-fixture.ts
 ## 许可证
 
 [MIT](LICENSE)。依赖保留各自的许可证。
+
+### Host OAuth 诊断日志
+
+OAuth 登录和刷新失败会向 Host 标准错误输出 JSON `mcp_oauth_failure` 记录。容器部署请查看 Host/容器日志，而非聊天记录。日志包含服务标识摘要、失败阶段，以及最多六层允许输出的错误分类、网络错误码和 HTTP 状态码。阶段包括 `callback_setup`、`resource_challenge`、`discovery_and_registration`、`authorization_callback`、`token_exchange`、`credential_persistence` 和 `refresh`；发现阶段包含 SDK 管理的客户端注册。未知错误保留为 `UnknownError`，未识别原因不表示成功。代理隧道拒绝状态从已识别的错误文本中提取，原始文本不会保留。
+
+日志不包含原始消息、堆栈、URL、服务显示名称、请求或响应正文、请求头、授权码、state 或凭据，也不进入 Client 状态和会话事件。UI 错误码保持不变。服务标识摘要用于关联错误，不是访问凭据。

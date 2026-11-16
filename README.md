@@ -124,3 +124,9 @@ Authentication recovery failure withdraws the affected service’s tools and req
 ## License
 
 [MIT](LICENSE). Dependencies retain their own licenses.
+
+### Host OAuth diagnostics
+
+OAuth login and refresh failures emit a JSON `mcp_oauth_failure` record to Host stderr. Container operators should inspect the Host/container logs, not the chat transcript. Records contain a hashed service identifier, the failure stage, and up to six allowlisted error classifications, network codes and HTTP status numbers. Stages are `callback_setup`, `resource_challenge`, `discovery_and_registration`, `authorization_callback`, `token_exchange`, `credential_persistence` and `refresh`. The discovery stage includes SDK-managed registration. Unknown errors remain `UnknownError`; absence of a classified reason does not imply success. Proxy tunnel rejection status is extracted from recognized proxy error text without retaining the text.
+
+Diagnostics omit raw messages, stacks, URLs, service labels, request/response bodies, headers, authorization codes, state and credentials. They are not returned in Client state or session events. UI error codes remain unchanged. A hashed identifier correlates failures but is not an access credential.

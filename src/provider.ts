@@ -5,6 +5,7 @@ import { auth, extractResourceMetadataUrl, type AuthProvider, type OAuthClientPr
 import { z } from 'zod'
 import type { ServerConfig } from './config.ts'
 import { OAuthMcpError } from './errors.ts'
+import { logOAuthFailure, type OAuthStage } from './diagnostics.ts'
 import { ManualResponse } from './manual-response.ts'
 import { listenCallback } from './callback.ts'
 
@@ -21,6 +22,8 @@ export function binding(config: ServerConfig): string {
 }
 export class Provider implements OAuthClientProvider {
   private grant: Grant
+  private stage: OAuthStage = 'callback_setup'
+  private failureStage?: OAuthStage
   private verifier = ''
   private manual?: ManualResponse
   private discovery?: OAuthDiscoveryState
@@ -93,7 +96,7 @@ export class Provider implements OAuthClientProvider {
   private persist(value: Grant): Promise<void> {
     const write = this.writes.then(async () => {
       if (this.stopped || this.active?.signal.aborted) throw new OAuthMcpError('OAUTH_CANCELLED')
-      await this.store.write(value)
+      try { await this.store.write(value) } catch (error) { this.failureStage = 'credential_persistence'; throw error }
       this.grant = value
     })
     this.writes = write.catch(() => {})
@@ -102,7 +105,11 @@ export class Provider implements OAuthClientProvider {
   private fetch: typeof fetch = (url, init) => fetch(url, { ...init, signal: AbortSignal.any([this.lifetime.signal, ...(this.active ? [this.active.signal] : []), AbortSignal.timeout(this.config.connectTimeoutMs), ...(init?.signal ? [init.signal] : [])]) })
   login(signal: AbortSignal, notify: (url: string) => void): Promise<void> {
     if (this.loginTask || this.stopped) return Promise.reject(new OAuthMcpError(this.stopped ? 'OAUTH_STOPPED' : 'OAUTH_BUSY'))
-    this.loginTask = this.runLogin(signal, notify).finally(() => { this.loginTask = undefined })
+    this.failureStage = undefined
+    this.loginTask = this.runLogin(signal, notify).catch(error => {
+      logOAuthFailure(this.config.id + ':' + this.config.url, this.failureStage ?? this.stage, error)
+      throw error
+    }).finally(() => { this.loginTask = undefined })
     return this.loginTask
   }
   /** Submit through the owner-only settings API; no URL fetch or credential logging. */
@@ -117,17 +124,22 @@ export class Provider implements OAuthClientProvider {
     this.active = { state: randomBytes(32).toString('hex'), signal: lifetime, notify }
     let callback: Awaited<ReturnType<typeof listenCallback>> | undefined
     try {
+      this.stage = 'callback_setup'
       if (this.config.callbackMode === 'manual') {
         this.manual = new ManualResponse(this.redirectUrl, this.active.state, lifetime)
         callback = this.manual
       } else callback = await this.receiveCallback(this.redirectUrl, this.active.state, lifetime, undefined, this.config.callbackMode === 'remote' ? this.config.callbackPort : undefined)
+      this.stage = 'resource_challenge'
       const challenge = await this.fetch(this.config.url, { method: 'GET' })
       const resourceMetadataUrl = extractResourceMetadataUrl(challenge)
       await challenge.body?.cancel()
+      this.stage = 'discovery_and_registration'
       const result = await auth(this, { serverUrl: this.config.url, resourceMetadataUrl, scope: this.config.scope || undefined, forceReauthorization: true, fetchFn: this.fetch })
       if (result === 'REDIRECT') {
+        this.stage = 'authorization_callback'
         const response = await callback.result
         lifetime.throwIfAborted()
+        this.stage = 'token_exchange'
         await auth(this, { serverUrl: this.config.url, authorizationCode: response.code, iss: response.iss, fetchFn: this.fetch })
       }
       lifetime.throwIfAborted()
@@ -137,11 +149,15 @@ export class Provider implements OAuthClientProvider {
   private renew(resourceMetadataUrl?: URL): Promise<void> {
     if (this.active) return Promise.reject(new OAuthMcpError('OAUTH_BUSY'))
     if (!this.refresh) {
+      this.failureStage = undefined
       this.refresh = (async () => {
         if (!this.grant.tokens?.refresh_token) throw new OAuthMcpError('OAUTH_LOGIN_REQUIRED')
         const result = await auth(this, { serverUrl: this.config.url, resourceMetadataUrl, fetchFn: this.fetch })
         if (result !== 'AUTHORIZED') throw new OAuthMcpError('OAUTH_LOGIN_REQUIRED')
-      })().catch(() => { throw new OAuthMcpError('OAUTH_LOGIN_REQUIRED') }).finally(() => { this.refresh = undefined })
+      })().catch(error => {
+        logOAuthFailure(this.config.id + ':' + this.config.url, this.failureStage ?? 'refresh', error)
+        throw new OAuthMcpError('OAUTH_LOGIN_REQUIRED')
+      }).finally(() => { this.refresh = undefined })
     }
     return this.refresh
   }
