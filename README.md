@@ -6,7 +6,7 @@ OAuth-protected MCP tools for an unmodified DeepSeek Harness installation. The p
 
 ## Status and compatibility
 
-Independent community plugin; not an official DeepSeek product. The npm 0.1.0 release supports local callbacks. The current 0.2.0-rc.1 development build adds remote personal-instance callbacks and manual response submission and is not yet published.
+Independent community plugin; not an official DeepSeek product. The npm 0.1.0 release supports local callbacks. The 0.2.0-rc.1 preview adds remote personal-instance callbacks and manual response submission.
 
 | Surface | Status |
 | --- | --- |
@@ -16,18 +16,18 @@ Independent community plugin; not an official DeepSeek product. The npm 0.1.0 re
 | Remote personal DSH, 0.2.0-rc.1 | HTTPS proxy fixture verified; actual deployment acceptance required |
 | Shared multi-user DSH | Not supported |
 
-The source candidate requires DSH `>=0.2.1-alpha.3`. All 13 published versions at or above this floor in the [17-version compatibility matrix](docs/compatibility.md) passed automated checks. Later versions are admitted by the range but are not automatically certified. The published 0.1.0 package retains its original rc.2 requirement until a new release.
+Version 0.2.0-rc.1 requires DSH `>=0.2.1-alpha.3`. All 13 published versions at or above this floor in the [17-version compatibility matrix](docs/compatibility.md) passed automated checks. Later versions are admitted by the range but are not automatically certified. Version 0.1.0 retains its original rc.2 requirement.
 
 ## Install from npm
 
 Requires Node 24.9+ and an unmodified official DSH installation satisfying `>=0.2.1-alpha.3`. The public package name is `@noob9527/dsh-mcp-oauth`.
 
-Version 0.1.0 is available on the public npm registry. Installation by package name into a clean official DSH profile was verified on 2026-11-16.
+Install the preview by its exact version below, or use the `next` tag. The stable `latest` tag remains on 0.1.0.
 
 Install the preview release:
 
 ```sh
-dsh plugin --profile web add @noob9527/dsh-mcp-oauth@0.1.0
+dsh plugin --profile web add @noob9527/dsh-mcp-oauth@0.2.0-rc.1
 ```
 
 The unscoped `dsh-mcp-oauth` package is a different project. When migrating a local unscoped installation, remove its plugin entry before installing this package; do not enable both together. Use the same DSH profile and home to retain locally stored service settings and grants.

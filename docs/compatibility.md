@@ -1,6 +1,6 @@
 # DSH 0.2.x compatibility
 
-Checked on 2026-11-16 against the public npm registry. The source candidate requires **`>=0.2.1-alpha.3`**. This is a minimum-version range, not an exact-version allowlist. The official DSH installer includes prereleases when evaluating this range. Future versions can install without editing the manifest, but compatibility with an untested future API is not guaranteed. The published plugin 0.1.0 retains its original requirement; these changes require a new package release.
+Checked on 2026-11-16 against the public npm registry. Version 0.2.0-rc.1 requires **`>=0.2.1-alpha.3`**. This is a minimum-version range, not an exact-version allowlist. The official DSH installer includes prereleases when evaluating this range. Future versions can install without editing the manifest, but compatibility with an untested future API is not guaranteed. The published plugin 0.1.0 retains its original requirement; install 0.2.0-rc.1 to use the expanded range.
 
 ## Published-version matrix
 

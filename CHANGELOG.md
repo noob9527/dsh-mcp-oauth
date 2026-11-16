@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — 0.2.0-rc.1
+## 0.2.0-rc.1 — 2026-11-16
 
 - Lower the DSH requirement to `>=0.2.1-alpha.3`, using the public `dsh-llm` error export and the Client locale type entry. Build against the minimum version and validate all 17 published 0.2.x versions.
 
