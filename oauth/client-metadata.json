@@ -3,7 +3,8 @@
   "client_name": "DSH MCP OAuth",
   "client_uri": "https://github.com/noob9527/dsh-mcp-oauth",
   "redirect_uris": [
-    "http://127.0.0.1:6274/oauth/callback"
+    "http://127.0.0.1/oauth/callback",
+    "http://localhost/oauth/callback"
   ],
   "grant_types": [
     "authorization_code",
@@ -12,5 +13,6 @@
   "response_types": [
     "code"
   ],
-  "token_endpoint_auth_method": "none"
+  "token_endpoint_auth_method": "none",
+  "application_type": "native"
 }
