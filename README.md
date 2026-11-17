@@ -134,3 +134,7 @@ Diagnostics omit raw messages, stacks, URLs, service labels, request/response bo
 When adding a service, Service ID is generated from the display name and appears under Advanced. Non-ASCII letters use Unicode code-point segments. Editing the ID manually stops automatic updates for that draft. Duplicate IDs are rejected; change the ID in Advanced. Saved services retain their existing, read-only ID when renamed.
 
 New services prefill the [public client metadata document](https://noob9527.github.io/dsh-mcp-oauth/oauth/client-metadata.json) in **Advanced → Client metadata document URL**. You can edit or clear this value. Existing services retain their saved value, including an empty value. The hosted document supports both local hostnames with the `/oauth/callback` path and variable ports. Other callback paths or remote callbacks require a matching document.
+
+Scopes appears under Advanced and defaults to empty for automatic discovery. Separate multiple scopes with spaces. Existing configured scopes remain unchanged.
+
+The service form shows only Display name and MCP URL by default. All other configuration fields are under Advanced; expanding it does not change stored values. Validation errors in advanced fields expand that section automatically.

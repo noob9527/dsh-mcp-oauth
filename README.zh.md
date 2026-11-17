@@ -114,3 +114,7 @@ OAuth 登录和刷新失败会向 Host 标准错误输出 JSON `mcp_oauth_failur
 新增服务时，服务标识根据显示名称生成，位于高级设置中；非 ASCII 字母使用 Unicode 码点片段。手动修改标识后，当前草稿不再随名称自动更新。标识重复时拒绝保存，请在高级设置中修改。已有服务保留原标识，编辑时不可修改，重命名也不会改变标识。
 
 新增服务在 **Advanced → Client metadata document URL** 中预填[公开客户端元数据文档](https://noob9527.github.io/dsh-mcp-oauth/oauth/client-metadata.json)，允许修改或清空。已有服务保留原值，包括空值。该文档支持两种本机主机名、`/oauth/callback` 路径和动态端口；其他路径或远程回调需要使用匹配的文档。
+
+Scopes（权限范围）位于高级设置，默认留空以自动发现；多个权限用空格分隔。已有配置的权限范围保持不变。
+
+服务表单默认仅显示 Display name（显示名称）和 MCP URL，其余配置项均位于 Advanced（高级设置）。展开高级设置不会改变已有配置；高级字段校验失败时自动展开。
