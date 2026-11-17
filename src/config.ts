@@ -15,6 +15,7 @@ export const serverSchema = z.object({
   mode: z.enum(['auto', 'cimd', 'preregistered', 'dcr']).default('auto'),
   clientId: z.string().max(2048).default(''),
   metadataUrl: z.union([z.literal(''), z.string().url().refine(value => {
+    if (!URL.canParse(value)) return false
     const url = new URL(value)
     return url.protocol === 'https:' && url.pathname !== '/' && !url.username && !url.password && !url.hash
   })]).default(''),

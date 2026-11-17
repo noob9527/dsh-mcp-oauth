@@ -112,3 +112,5 @@ OAuth 登录和刷新失败会向 Host 标准错误输出 JSON `mcp_oauth_failur
 日志不包含原始消息、堆栈、URL、服务显示名称、请求或响应正文、请求头、授权码、state 或凭据，也不进入 Client 状态和会话事件。UI 错误码保持不变。服务标识摘要用于关联错误，不是访问凭据。
 
 新增服务时，服务标识根据显示名称生成，位于高级设置中；非 ASCII 字母使用 Unicode 码点片段。手动修改标识后，当前草稿不再随名称自动更新。标识重复时拒绝保存，请在高级设置中修改。已有服务保留原标识，编辑时不可修改，重命名也不会改变标识。
+
+新增服务在 **Advanced → Client metadata document URL** 中预填[公开客户端元数据文档](https://noob9527.github.io/dsh-mcp-oauth/oauth/client-metadata.json)，允许修改或清空。已有服务保留原值，包括空值。该文档支持默认本机回调 `http://127.0.0.1:6274/oauth/callback`；自定义回调需要使用匹配的文档。

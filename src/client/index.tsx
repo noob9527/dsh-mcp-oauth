@@ -94,12 +94,12 @@ function Card({ t, view, invoke }: Props) {
         <Button disabled={busy} onClick={() => act(row.config.id, 'remove')}>{t('remove')}</Button>
       </div>
     </section>)}
-    {!draft && <Button disabled={busy} onClick={() => { setDraft(serverSchema.parse({ id: serviceIdFromLabel('MCP'), label: 'MCP', url: 'https://mcp.example.com/mcp' })); setEditing(false); setCustomId(false); setAdvanced(false); setSecret('') }}>{t('add')}</Button>}
+    {!draft && <Button disabled={busy} onClick={() => { setDraft(serverSchema.parse({ id: serviceIdFromLabel('MCP'), label: 'MCP', url: 'https://mcp.example.com/mcp', metadataUrl: 'https://noob9527.github.io/dsh-mcp-oauth/oauth/client-metadata.json' })); setEditing(false); setCustomId(false); setAdvanced(false); setSecret('') }}>{t('add')}</Button>}
     {draft && <form style={box} onSubmit={event => {
       event.preventDefault()
       const parsed = serverSchema.safeParse(draft)
       if (!editing && rows?.some(row => row.config.id === draft.id)) { setAdvanced(true); setError(t('duplicateId')); return }
-      if (!parsed.success) { if (!serverSchema.shape.id.safeParse(draft.id).success) setAdvanced(true); setError(t('invalid')); return }
+      if (!parsed.success) { if (!serverSchema.shape.id.safeParse(draft.id).success || !serverSchema.shape.metadataUrl.safeParse(draft.metadataUrl).success || (draft.mode === 'cimd' && !draft.metadataUrl)) setAdvanced(true); setError(t('invalid')); return }
       void run(async () => { await invoke('save', { config: parsed.data, ...(secret ? { secret } : {}) }); setDraft(undefined); setSecret('') })
     }}>
       <label style={stack}>{t('callbackMode')}<select disabled={busy} value={draft.callbackMode} onChange={event => setDraft({ ...draft, callbackMode: serverSchema.shape.callbackMode.parse(event.target.value) })}>
@@ -107,7 +107,7 @@ function Card({ t, view, invoke }: Props) {
       </select></label>
       <p>{t(draft.callbackMode === 'manual' ? 'manualHelp' : draft.callbackMode === 'remote' ? 'remoteHelp' : 'local')}</p>
       {draft.callbackMode === 'remote' && <label style={stack}>{t('callbackPort')}<Input type="number" disabled={busy} value={draft.callbackPort} onChange={event => setDraft({ ...draft, callbackPort: Number(event.target.value) })} /></label>}
-      {(['label', 'url', 'clientId', 'metadataUrl', 'redirectUrl', 'scope'] as const).map(key => <label key={key} style={stack}>{t(key)}
+      {(['label', 'url', 'clientId', 'redirectUrl', 'scope'] as const).map(key => <label key={key} style={stack}>{t(key)}
         <Input value={draft[key]} disabled={busy} onChange={event => setDraft({ ...draft, [key]: event.target.value, ...(key === 'label' && !editing && !customId ? { id: serviceIdFromLabel(event.target.value) } : {}) })} />
       </label>)}
       <label style={stack}>{t('mode')}<select disabled={busy} value={draft.mode} onChange={event => setDraft({ ...draft, mode: serverSchema.shape.mode.parse(event.target.value) })}>
@@ -116,6 +116,7 @@ function Card({ t, view, invoke }: Props) {
       <label style={stack}>{t('secret')}<Input type="password" autoComplete="new-password" value={secret} disabled={busy} onChange={event => setSecret(event.target.value)} /></label>
       <details open={advanced} onToggle={event => setAdvanced(event.currentTarget.open)}><summary>{t('advanced')}</summary><div style={stack}>
         <label style={stack}>{t('id')}<Input value={draft.id} disabled={busy || editing} onChange={event => { setCustomId(true); setDraft({ ...draft, id: event.target.value }) }} /></label>
+        <label style={stack}>{t('metadataUrl')}<Input value={draft.metadataUrl} disabled={busy} onChange={event => setDraft({ ...draft, metadataUrl: event.target.value })} /></label>
         {numeric.map(key => <label style={stack} key={key}>{t(key)}<Input type="number" value={draft[key]} onChange={event => setDraft({ ...draft, [key]: Number(event.target.value) })} /></label>)}</div></details>
       <div style={actions}><Button type="submit" disabled={busy}>{t('save')}</Button><Button type="button" disabled={busy} onClick={() => { setDraft(undefined); setSecret('') }}>{t('discard')}</Button></div>
     </form>}

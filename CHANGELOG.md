@@ -2,6 +2,8 @@
 
 ## Unreleased — 0.2.0-rc.2
 
+- Host a public CIMD document on GitHub Pages and prefill its editable URL under Advanced for new services; preserve existing values. Invalid metadata URLs report validation errors.
+
 - Move Service ID into Advanced and generate it from the display name for new services. Keep saved IDs read-only and report duplicate IDs for manual correction.
 - Add sanitized Host OAuth failure diagnostics with operation stages, bounded error chains, network/OAuth reason codes and proxy tunnel rejection status. Raw messages, URLs, stacks and credentials are excluded.
 - Preserve existing Client error codes and authentication recovery behavior.

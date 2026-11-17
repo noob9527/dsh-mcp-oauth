@@ -45,3 +45,9 @@ Published name/version pairs cannot be overwritten. Repository documentation fix
 ## Evidence limits
 
 Local Web acceptance and the automated suite are recorded in acceptance.md. Desktop remains unqualified. Local screenshots, counters and tarballs under artifacts/ are intentionally ignored; review them before any separate upload. Do not publish URLs containing browser login tokens, callback codes or OAuth state.
+
+## Publish the client metadata document
+
+The `site/` directory contains only public OAuth client metadata. Its GitHub Pages deployment uses the `gh-pages` branch root. After reviewing and committing changes to `site/`, publish its subtree with `git subtree split --prefix=site` and push the returned commit with `git push origin <commit>:gh-pages`. Subsequent deployments must retain branch history; do not force-push. Configure repository Pages to deploy from `gh-pages` at `/ (root)`. This publishes static metadata only, not an npm package.
+
+Verify the document URL returns HTTP 200 without redirects, a JSON Content-Type, and a `client_id` exactly matching its URL. Keep the URL stable and retain supported redirect URIs when updating the document. The default document supports only the documented local callback; it contains no credentials or deployment-specific service addresses.
