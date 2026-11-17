@@ -52,7 +52,7 @@ for (const version of selected.length ? selected : versions) {
   for (const name of Object.keys(dependencies)) if (name === '@deepseek-ai/dsh' || name.startsWith('@deepseek-ai/dsh-')) dependencies[name] = version
   dependencies['@deepseek-ai/cordis'] = records['@deepseek-ai/dsh'].versions[version].dependencies['@deepseek-ai/cordis']
   await writeFile(join(cwd, 'package.json'), JSON.stringify({ name: 'compatibility-fixture', private: true, type: 'module', dependencies }))
-  for (const path of ['src', 'tests', 'scripts/build.mjs', 'tsconfig.json', 'tsconfig.build.json']) await cp(join(source, path), join(cwd, path), { recursive: true })
+  for (const path of ['src', 'tests', 'site', 'scripts/build.mjs', 'tsconfig.json', 'tsconfig.build.json']) await cp(join(source, path), join(cwd, path), { recursive: true })
   // Model keys and existing DSH homes are not inherited by these keyless fixtures.
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !/^(DSH_|DEEPSEEK_|OPENAI_|ANTHROPIC_)/.test(key)))
   env.DSH_HOME = join(cwd, 'home'); env.DSH_TELEMETRY_DISABLED = '1'
