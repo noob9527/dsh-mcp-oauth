@@ -40,7 +40,7 @@ jobs:
       - run: pnpm test
       - run: pnpm pack --pack-destination artifacts
       - run: node scripts/check-release.mjs --tarball artifacts/noob9527-dsh-mcp-oauth-0.2.0-rc.2.tgz
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dsh-mcp-oauth-${{ matrix.os }}
           path: artifacts/*.tgz
