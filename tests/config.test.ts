@@ -4,6 +4,14 @@ import { serverSchema } from '../src/config.ts'
 import { toolName } from '../src/connection.ts'
 import { remoteInfo } from '../src/remote.ts'
 
+test('malformed MCP URLs return field issues without throwing', () => {
+  for (const url of ['', 'not-a-url', 'https://', 'http://[invalid']) {
+    const result = serverSchema.safeParse({ id: 'test', label: 'Test', url })
+    assert.equal(result.success, false)
+    if (!result.success) assert(result.error.issues.some(issue => issue.path[0] === 'url'))
+  }
+})
+
 test('remote HTTP and non-loopback callbacks are rejected', () => {
   const config = { id: 'test', label: 'Test', url: 'https://mcp.example.com/mcp' }
   assert(!serverSchema.safeParse({ ...config, url: 'http://mcp.example.com/mcp' }).success)

@@ -1,5 +1,17 @@
 /** Registration-dependent callback visibility for the settings form. */
-import type { ServerConfig } from '../config.ts'
+import { serverSchema, type ServerConfig } from '../config.ts'
+
+/**
+ * Validate settings for saving without the metadata URL unused by DCR or pre-registration.
+ * @param config Current form values; the draft is not mutated.
+ * @returns Validated settings or field validation issues.
+ */
+export function parseServiceForm(config: ServerConfig) {
+  return serverSchema.safeParse({
+    ...config,
+    metadataUrl: config.mode === 'dcr' || config.mode === 'preregistered' ? '' : config.metadataUrl,
+  })
+}
 
 export const defaultMetadataUrl = 'https://noob9527.github.io/dsh-mcp-oauth/oauth/client-metadata.json'
 /** Whether the hosted document is selected by the current registration settings. */

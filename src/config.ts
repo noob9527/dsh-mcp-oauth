@@ -2,6 +2,7 @@
 import { z } from 'zod'
 
 const endpoint = z.string().url().refine(value => {
+  if (!URL.canParse(value)) return false
   const url = new URL(value)
   return !url.username && !url.password && !url.hash && (url.protocol === 'https:' ||
     url.protocol === 'http:' && ['127.0.0.1', '[::1]', 'localhost'].includes(url.hostname))

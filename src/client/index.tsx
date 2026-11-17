@@ -10,7 +10,7 @@ import { Button, Input, Tooltip, IconInfoOutlineRegular } from '@deepseek-ai/dsh
 import { z } from 'zod'
 import { remoteInfo } from '../remote.ts'
 import { serverSchema, statusSchema, type ServerConfig, type ServerStatus, type Action } from '../config.ts'
-import { defaultMetadataUrl, usesDefaultMetadata, showsCallbackUrl, changeCallbackMode } from './form.ts'
+import { defaultMetadataUrl, usesDefaultMetadata, showsCallbackUrl, changeCallbackMode, parseServiceForm } from './form.ts'
 import { serviceIdFromLabel } from './service-id.ts'
 import { en, zh, type Key } from './locales.ts'
 
@@ -114,9 +114,14 @@ function Card({ t, view, invoke }: Props) {
       if (busy) return
       if (usesDefaultMetadata(draft) && draft.callbackMode !== 'local') { setAdvanced(true); setError(t('defaultCallbackHelp')); return }
       const effectiveId = editing ? draft.id : customId || serviceIdFromLabel(draft.label)
-      const parsed = serverSchema.safeParse({ ...draft, id: effectiveId })
+      const parsed = parseServiceForm({ ...draft, id: effectiveId })
       if (!editing && rows?.some(row => row.config.id === effectiveId)) { setAdvanced(true); setError(t('duplicateId')); return }
-      if (!parsed.success) { if (parsed.error.issues.some(issue => issue.path[0] !== 'label' && issue.path[0] !== 'url')) setAdvanced(true); setError(t('invalid')); return }
+      if (!parsed.success) {
+        const fields = [...new Set(parsed.error.issues.map(issue => issue.path[0]))]
+        if (fields.some(field => field !== 'label' && field !== 'url')) setAdvanced(true)
+        setError(t('invalid') + ' ' + fields.filter((field): field is Key => typeof field === 'string' && field in en).map(field => t(field)).join(', '))
+        return
+      }
       void run(async () => { await invoke('save', { config: parsed.data, ...(secret ? { secret } : {}) }); setDraft(undefined); setSecret('') })
     }}>
       {(['label', 'url'] as const).map(key => <Field key={key} name={key} t={t}>
