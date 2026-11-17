@@ -6,28 +6,28 @@
 
 ## 状态与兼容性
 
-本项目是独立社区插件，并非 DeepSeek 官方产品。npm 0.1.0 仅支持本机回调；0.2.0 新增远程个人实例回调和手动粘贴授权响应。
+本项目是独立社区插件，并非 DeepSeek 官方产品。npm 0.1.0 仅支持本机回调；0.2.0-rc.2 新增远程个人实例回调和手动粘贴授权响应。
 
 | 客户端 | 验证状态 |
 | --- | --- |
 | 官方 DSH 0.2.1-alpha.3 / 0.2.2-rc.1 Web，本机 macOS | 当前候选包：已验证浏览器 CIMD 授权和真实聊天调用 |
 | 官方 Desktop | 计划支持，尚待验收 |
 | 其他 DSH 版本 | 未声明兼容 |
-| 远程个人 DSH，0.2.0 | HTTPS 代理 fixture 已验证，实际部署仍需验收 |
+| 远程个人 DSH，0.2.0-rc.2 | HTTPS 代理 fixture 已验证，实际部署仍需验收 |
 | 多人共享 DSH | 不支持 |
 
-0.2.0 要求 DSH `>=0.2.1-alpha.3`。[17 版本兼容矩阵](docs/compatibility.md)中满足下限的 13 个已发布版本均通过自动化检查。范围允许安装后续版本，但不代表后续版本自动通过验收。0.1.0 保留原 rc.2 限制。
+0.2.0-rc.2 要求 DSH `>=0.2.1-alpha.3`。[17 版本兼容矩阵](docs/compatibility.md)中满足下限的 13 个已发布版本均通过自动化检查。范围允许安装后续版本，但不代表后续版本自动通过验收。0.1.0 保留原 rc.2 限制。
 
 ## 从 npm 安装
 
 需要 Node 24.9+ 和满足 `>=0.2.1-alpha.3` 的未经修改官方 DSH。公开包名为 `@noob9527/dsh-mcp-oauth`。
 
-使用下面的精确版本号安装 0.2.0，或使用 `latest` 标签安装当前稳定版。
+`0.2.0-rc.2` 正在开发中，尚未发布到 npm。使用 `next` 安装已发布的预览版，或按下文从当前源码构建；`latest` 用于安装稳定版。
 
-安装稳定版：
+安装已发布的预览版：
 
 ```sh
-dsh plugin --profile web add @noob9527/dsh-mcp-oauth@0.2.0
+dsh plugin --profile web add @noob9527/dsh-mcp-oauth@next
 ```
 
 无 scope 的 `dsh-mcp-oauth` 属于其他项目。从本地旧包迁移时，先移除旧插件条目，再安装新包，不要同时启用两者。使用相同 DSH profile 和 home，以保留本机服务配置和授权记录。
@@ -41,7 +41,7 @@ pnpm install --frozen-lockfile --ignore-scripts
 pnpm run typecheck
 pnpm test
 pnpm pack --pack-destination artifacts
-dsh plugin --profile web add "$(pwd)/artifacts/noob9527-dsh-mcp-oauth-0.2.0.tgz"
+dsh plugin --profile web add "$(pwd)/artifacts/noob9527-dsh-mcp-oauth-0.2.0-rc.2.tgz"
 ```
 
 测试需要支持 `req -addext` 的 OpenSSL；自动化测试不需要模型 API Key 或业务 MCP 服务。DSH 提示需要重启时，重启后继续。如果使用自定义 `DSH_HOME`，安装插件和启动 DSH 时必须使用相同值。通过 npm 安装时，如无法解析包名，请检查 `npm config get registry`；公开 registry 为 `https://registry.npmjs.org/`。
