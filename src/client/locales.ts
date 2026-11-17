@@ -1,6 +1,7 @@
 /** Locale-owned configuration and action labels. */
 export const en = {
   fieldHelp: 'Help',
+  defaultCallbackHelp: 'The default CIMD document is for local callbacks. Select Local, or configure a custom document matching your remote or manual callback.',
   clientIdAutoPlaceholder: 'Optional; leave blank to try CIMD or dynamic registration',
   clientIdRequiredPlaceholder: 'Required; enter the pre-registered client ID',
   secretPlaceholder: 'Optional; only for pre-registered confidential clients',
@@ -53,6 +54,7 @@ export const en = {
 export type Key = keyof typeof en
 export const zh: Record<Key, string> = {
   fieldHelp: '说明',
+  defaultCallbackHelp: '默认 CIMD 文档用于本机回调。请选择本机模式，或配置与远程、手动回调匹配的自定义文档。',
   clientIdAutoPlaceholder: '可选；留空时尝试 CIMD 或动态注册',
   clientIdRequiredPlaceholder: '必填；请输入预注册的客户端 ID',
   secretPlaceholder: '可选；仅预注册机密客户端需要',

@@ -10,6 +10,7 @@ import { Button, Input, Tooltip, IconInfoOutlineRegular } from '@deepseek-ai/dsh
 import { z } from 'zod'
 import { remoteInfo } from '../remote.ts'
 import { serverSchema, statusSchema, type ServerConfig, type ServerStatus, type Action } from '../config.ts'
+import { defaultMetadataUrl, usesDefaultMetadata, showsCallbackUrl, changeCallbackMode } from './form.ts'
 import { serviceIdFromLabel } from './service-id.ts'
 import { en, zh, type Key } from './locales.ts'
 
@@ -19,7 +20,6 @@ type Props = PropsRuntime<'plugins.item'> & PropsLocale<'mcp.oauth'> & { invoke:
 const stack: CSSProperties = { display: 'grid', gap: 12, minWidth: 0 }
 const actions: CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: 8 }
 const box: CSSProperties = { ...stack, padding: 16, border: '1px solid var(--dsw-border)', borderRadius: 12, overflowWrap: 'anywhere' }
-const defaultMetadataUrl = 'https://noob9527.github.io/dsh-mcp-oauth/oauth/client-metadata.json'
 const numeric = ['connectTimeoutMs', 'authTimeoutMs', 'toolTimeoutMs', 'refreshSkewMs', 'reconnectAttempts', 'reconnectMaxDelayMs'] as const
 /** Localized field labels with keyboard- and pointer-accessible help. */
 function Field({ name, t, children }: { name: 'label' | 'url' | 'id' | 'mode' | 'clientId' | 'secret' | 'metadataUrl' | 'callbackMode' | 'redirectUrl' | 'callbackPort' | 'scope' | 'connectTimeoutMs' | 'authTimeoutMs' | 'toolTimeoutMs' | 'refreshSkewMs' | 'reconnectAttempts' | 'reconnectMaxDelayMs' | 'manualResponse'; t: Props['t']; children: ReactElement<{ id?: string }> }) {
@@ -109,8 +109,10 @@ function Card({ t, view, invoke }: Props) {
       </div>
     </section>)}
     {!draft && <Button disabled={busy} onClick={() => { setDraft(serverSchema.parse({ id: serviceIdFromLabel('MCP'), label: 'MCP', url: 'https://mcp.example.com/mcp', metadataUrl: defaultMetadataUrl })); setEditing(false); setCustomId(''); setAdvanced(false); setSecret('') }}>{t('add')}</Button>}
-    {draft && <form style={box} onSubmit={event => {
+    {draft && <form noValidate style={box} onSubmit={event => {
       event.preventDefault()
+      if (busy) return
+      if (usesDefaultMetadata(draft) && draft.callbackMode !== 'local') { setAdvanced(true); setError(t('defaultCallbackHelp')); return }
       const effectiveId = editing ? draft.id : customId || serviceIdFromLabel(draft.label)
       const parsed = serverSchema.safeParse({ ...draft, id: effectiveId })
       if (!editing && rows?.some(row => row.config.id === effectiveId)) { setAdvanced(true); setError(t('duplicateId')); return }
@@ -130,14 +132,15 @@ function Card({ t, view, invoke }: Props) {
           <Field name="clientId" t={t}><Input value={draft.clientId} placeholder={t(draft.mode === 'auto' ? 'clientIdAutoPlaceholder' : 'clientIdRequiredPlaceholder')} required={draft.mode === 'preregistered'} disabled={busy} onChange={event => setDraft({ ...draft, clientId: event.target.value })} /></Field>
           <Field name="secret" t={t}><Input type="password" autoComplete="new-password" placeholder={t(editing ? 'secretEditPlaceholder' : 'secretPlaceholder')} value={secret} disabled={busy} onChange={event => setSecret(event.target.value)} /></Field>
         </>}
-        <Field name="callbackMode" t={t}><select disabled={busy} value={draft.callbackMode} onChange={event => setDraft({ ...draft, callbackMode: serverSchema.shape.callbackMode.parse(event.target.value) })}>
+        <Field name="callbackMode" t={t}><select disabled={busy} value={draft.callbackMode} onChange={event => setDraft(changeCallbackMode(draft, serverSchema.shape.callbackMode.parse(event.target.value)))}>
           <option value="local">{t('localMode')}</option><option value="remote">{t('remoteMode')}</option><option value="manual">{t('manualMode')}</option>
         </select></Field>
+        {usesDefaultMetadata(draft) && draft.callbackMode !== 'local' && <p role="status">{t('defaultCallbackHelp')}</p>}
         <p>{t(draft.callbackMode === 'manual' ? 'manualHelp' : draft.callbackMode === 'remote' ? 'remoteHelp' : 'local')}</p>
         {draft.callbackMode === 'remote' && <Field name="callbackPort" t={t}><Input type="number" disabled={busy} value={draft.callbackPort} onChange={event => setDraft({ ...draft, callbackPort: Number(event.target.value) })} /></Field>}
-        {draft.callbackMode !== 'local' && draft.metadataUrl !== defaultMetadataUrl && <Field name="redirectUrl" t={t}><Input value={draft.redirectUrl} disabled={busy} onChange={event => setDraft({ ...draft, redirectUrl: event.target.value })} /></Field>}
+        {showsCallbackUrl(draft) && <Field name="redirectUrl" t={t}><Input value={draft.redirectUrl} disabled={busy} onChange={event => setDraft({ ...draft, redirectUrl: event.target.value })} /></Field>}
         <Field name="scope" t={t}><Input value={draft.scope} disabled={busy} placeholder={t('scopePlaceholder')} onChange={event => setDraft({ ...draft, scope: event.target.value })} /></Field>
-        {numeric.map(key => <Field key={key} name={key} t={t}><Input type="number" value={draft[key]} onChange={event => setDraft({ ...draft, [key]: Number(event.target.value) })} /></Field>)}</div></details>
+        {numeric.map(key => <Field key={key} name={key} t={t}><Input type="number" disabled={busy} value={draft[key]} onChange={event => setDraft({ ...draft, [key]: Number(event.target.value) })} /></Field>)}</div></details>
       <div style={actions}><Button type="submit" disabled={busy}>{t('save')}</Button><Button type="button" disabled={busy} onClick={() => { setDraft(undefined); setSecret('') }}>{t('discard')}</Button></div>
     </form>}
   </section>
