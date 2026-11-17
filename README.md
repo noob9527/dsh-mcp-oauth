@@ -138,3 +138,5 @@ New services prefill the [public client metadata document](https://noob9527.gith
 Scopes appears under Advanced and defaults to empty for automatic discovery. Separate multiple scopes with spaces. Existing configured scopes remain unchanged.
 
 The service form shows only Display name and MCP URL by default. All other configuration fields are under Advanced; expanding it does not change stored values. Validation errors in advanced fields expand that section automatically.
+
+Each configuration field has a help button with a localized tooltip. Hover, focus with the keyboard or click to read its purpose; click outside or press Escape to dismiss it.

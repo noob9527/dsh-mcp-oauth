@@ -1,12 +1,12 @@
 /** Settings surface mounted through the official plugin-page slot. */
-import { useEffect, useId, useState, type CSSProperties } from 'react'
+import { cloneElement, useEffect, useId, useState, type ReactElement, type CSSProperties } from 'react'
 import type { Context } from '@deepseek-ai/cordis'
 import type { PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type {} from '@deepseek-ai/dsh-client-ui-plugin-manager/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-api-gateway/client'
-import { Button, Input } from '@deepseek-ai/dsh-client-ui-primitives'
+import { Button, Input, Tooltip, IconInfoOutlineRegular } from '@deepseek-ai/dsh-client-ui-primitives'
 import { z } from 'zod'
 import { remoteInfo } from '../remote.ts'
 import { serverSchema, statusSchema, type ServerConfig, type ServerStatus, type Action } from '../config.ts'
@@ -20,6 +20,19 @@ const stack: CSSProperties = { display: 'grid', gap: 12, minWidth: 0 }
 const actions: CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: 8 }
 const box: CSSProperties = { ...stack, padding: 16, border: '1px solid var(--dsw-border)', borderRadius: 12, overflowWrap: 'anywhere' }
 const numeric = ['connectTimeoutMs', 'authTimeoutMs', 'toolTimeoutMs', 'refreshSkewMs', 'reconnectAttempts', 'reconnectMaxDelayMs'] as const
+/** Localized field labels with keyboard- and pointer-accessible help. */
+function Field({ name, t, children }: { name: 'label' | 'url' | 'id' | 'mode' | 'clientId' | 'secret' | 'metadataUrl' | 'callbackMode' | 'redirectUrl' | 'callbackPort' | 'scope' | 'connectTimeoutMs' | 'authTimeoutMs' | 'toolTimeoutMs' | 'refreshSkewMs' | 'reconnectAttempts' | 'reconnectMaxDelayMs' | 'manualResponse'; t: Props['t']; children: ReactElement<{ id?: string }> }) {
+  const id = useId()
+  return <div style={stack}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <label htmlFor={id}>{t(name)}</label>
+      <Tooltip label={t(`${name}Tooltip`)} side="top" portal openOnClick maxWidth={320}>
+        <Button type="button" size="sm" aria-label={`${t(name)} — ${t('fieldHelp')}`}><IconInfoOutlineRegular size={16} /></Button>
+      </Tooltip>
+    </div>
+    {cloneElement(children, { id })}
+  </div>
+}
 /** Input lives only for one pending attempt and is cleared before submission. */
 function ManualInput({ id, t, invoke }: { id: string; t: Props['t']; invoke: Invoke }) {
   const [response, setResponse] = useState('')
@@ -35,7 +48,7 @@ function ManualInput({ id, t, invoke }: { id: string; t: Props['t']; invoke: Inv
     finally { setPending(false) }
   }}>
     <p>{t('manualInstructions')}</p>
-    <label style={stack}>{t('manualResponse')}<Input type="password" autoComplete="off" spellCheck={false} maxLength={16384} value={response} disabled={pending || received} onChange={event => setResponse(event.target.value)} /></label>
+    <Field name="manualResponse" t={t}><Input type="password" autoComplete="off" spellCheck={false} maxLength={16384} value={response} disabled={pending || received} onChange={event => setResponse(event.target.value)} /></Field>
     <Button type="submit" disabled={pending || received || !response.trim()}>{t('manualSubmit')}</Button>
     {error && <p role="alert">{error}</p>}
     {received && <p role="status">{t('manualReceived')}</p>}
@@ -103,29 +116,29 @@ function Card({ t, view, invoke }: Props) {
       if (!parsed.success) { if (parsed.error.issues.some(issue => issue.path[0] !== 'label' && issue.path[0] !== 'url')) setAdvanced(true); setError(t('invalid')); return }
       void run(async () => { await invoke('save', { config: parsed.data, ...(secret ? { secret } : {}) }); setDraft(undefined); setSecret('') })
     }}>
-      {(['label', 'url'] as const).map(key => <label key={key} style={stack}>{t(key)}
+      {(['label', 'url'] as const).map(key => <Field key={key} name={key} t={t}>
         <Input value={draft[key]} disabled={busy} onChange={event => setDraft({ ...draft, [key]: event.target.value, ...(key === 'label' && !editing && !customId ? { id: serviceIdFromLabel(event.target.value) } : {}) })} />
-      </label>)}
+      </Field>)}
       <details open={advanced} onToggle={event => setAdvanced(event.currentTarget.open)}><summary>{t('advanced')}</summary><div style={stack}>
-        <label style={stack}>{t('id')}<Input value={draft.id} disabled={busy || editing} onChange={event => { setCustomId(true); setDraft({ ...draft, id: event.target.value }) }} /></label>
-        <label style={stack}>{t('mode')}<select disabled={busy} value={draft.mode} onChange={event => setDraft({ ...draft, mode: serverSchema.shape.mode.parse(event.target.value) })}>
+        <Field name="id" t={t}><Input value={draft.id} disabled={busy || editing} onChange={event => { setCustomId(true); setDraft({ ...draft, id: event.target.value }) }} /></Field>
+        <Field name="mode" t={t}><select disabled={busy} value={draft.mode} onChange={event => setDraft({ ...draft, mode: serverSchema.shape.mode.parse(event.target.value) })}>
           {(['auto', 'cimd', 'preregistered', 'dcr'] as const).map(mode => <option key={mode} value={mode}>{t(mode)}</option>)}
-        </select></label>
-        <label style={stack}>{t('secret')}<Input type="password" autoComplete="new-password" value={secret} disabled={busy} onChange={event => setSecret(event.target.value)} /></label>
-        {(['clientId', 'redirectUrl'] as const).map(key => <label key={key} style={stack}>{t(key)}
+        </select></Field>
+        <Field name="secret" t={t}><Input type="password" autoComplete="new-password" value={secret} disabled={busy} onChange={event => setSecret(event.target.value)} /></Field>
+        {(['clientId', 'redirectUrl'] as const).map(key => <Field key={key} name={key} t={t}>
           <Input value={draft[key]} disabled={busy} onChange={event => setDraft({ ...draft, [key]: event.target.value })} />
-        </label>)}
-        <label style={stack}>{t('callbackMode')}<select disabled={busy} value={draft.callbackMode} onChange={event => setDraft({ ...draft, callbackMode: serverSchema.shape.callbackMode.parse(event.target.value) })}>
+        </Field>)}
+        <Field name="callbackMode" t={t}><select disabled={busy} value={draft.callbackMode} onChange={event => setDraft({ ...draft, callbackMode: serverSchema.shape.callbackMode.parse(event.target.value) })}>
           <option value="local">{t('localMode')}</option><option value="remote">{t('remoteMode')}</option><option value="manual">{t('manualMode')}</option>
-        </select></label>
+        </select></Field>
         <p>{t(draft.callbackMode === 'manual' ? 'manualHelp' : draft.callbackMode === 'remote' ? 'remoteHelp' : 'local')}</p>
-        {draft.callbackMode === 'remote' && <label style={stack}>{t('callbackPort')}<Input type="number" disabled={busy} value={draft.callbackPort} onChange={event => setDraft({ ...draft, callbackPort: Number(event.target.value) })} /></label>}
-        <label style={stack}>{t('metadataUrl')}<Input value={draft.metadataUrl} disabled={busy} onChange={event => setDraft({ ...draft, metadataUrl: event.target.value })} /></label>
+        {draft.callbackMode === 'remote' && <Field name="callbackPort" t={t}><Input type="number" disabled={busy} value={draft.callbackPort} onChange={event => setDraft({ ...draft, callbackPort: Number(event.target.value) })} /></Field>}
+        <Field name="metadataUrl" t={t}><Input value={draft.metadataUrl} disabled={busy} onChange={event => setDraft({ ...draft, metadataUrl: event.target.value })} /></Field>
         <div style={stack}>
-          <label style={stack}>{t('scope')}<Input value={draft.scope} disabled={busy} aria-describedby={scopeHelpId} onChange={event => setDraft({ ...draft, scope: event.target.value })} /></label>
+          <Field name="scope" t={t}><Input value={draft.scope} disabled={busy} aria-describedby={scopeHelpId} onChange={event => setDraft({ ...draft, scope: event.target.value })} /></Field>
           <p id={scopeHelpId} style={{ margin: 0 }}>{t('scopeHelp')}</p>
         </div>
-        {numeric.map(key => <label style={stack} key={key}>{t(key)}<Input type="number" value={draft[key]} onChange={event => setDraft({ ...draft, [key]: Number(event.target.value) })} /></label>)}</div></details>
+        {numeric.map(key => <Field key={key} name={key} t={t}><Input type="number" value={draft[key]} onChange={event => setDraft({ ...draft, [key]: Number(event.target.value) })} /></Field>)}</div></details>
       <div style={actions}><Button type="submit" disabled={busy}>{t('save')}</Button><Button type="button" disabled={busy} onClick={() => { setDraft(undefined); setSecret('') }}>{t('discard')}</Button></div>
     </form>}
   </section>
