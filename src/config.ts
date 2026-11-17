@@ -21,7 +21,7 @@ export const serverSchema = z.object({
   })]).default(''),
   callbackMode: z.enum(['local', 'remote', 'manual']).default('local'),
   callbackPort: z.number().int().min(1).max(65535).default(6274),
-  redirectUrl: z.string().url().default('http://127.0.0.1:6274/oauth/callback'),
+  redirectUrl: z.string().url().default('http://127.0.0.1/oauth/callback'),
   scope: z.string().max(2048).default(''),
   connectTimeoutMs: duration.default(30_000),
   authTimeoutMs: duration.default(300_000),
@@ -35,9 +35,10 @@ export const serverSchema = z.object({
   catch { return }
   const clean = redirect.pathname !== '/' && !redirect.search && !redirect.hash && !redirect.username && !redirect.password
   const https = redirect.protocol === 'https:' && !['localhost', '127.0.0.1', '[::1]'].includes(redirect.hostname)
-  const loopback = redirect.protocol === 'http:' && redirect.hostname === '127.0.0.1' && !!redirect.port && Number(redirect.port) > 0
-  const valid = value.callbackMode === 'remote' ? https : value.callbackMode === 'manual' ? https || loopback : loopback
-  if (!clean || !valid) ctx.addIssue({ code: 'custom', path: ['redirectUrl'], message: 'Use HTTPS for remote callbacks; local callbacks require an explicit loopback HTTP port and path. Manual mode accepts either.' })
+  const loopback = redirect.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(redirect.hostname)
+  const manualLoopback = loopback && !!redirect.port && Number(redirect.port) > 0
+  const valid = value.callbackMode === 'remote' ? https : value.callbackMode === 'manual' ? https || manualLoopback : loopback
+  if (!clean || !valid) ctx.addIssue({ code: 'custom', path: ['redirectUrl'], message: 'Use HTTPS for remote callbacks; local callbacks require a loopback HTTP URL with a path; omit the port for automatic allocation. Manual mode requires HTTPS or an explicit loopback port.' })
 
   if (value.mode === 'cimd' && !value.metadataUrl) ctx.addIssue({ code: 'custom', path: ['metadataUrl'], message: 'CIMD requires a metadata document URL.' })
   if (value.mode === 'preregistered' && !value.clientId) ctx.addIssue({ code: 'custom', path: ['clientId'], message: 'Pre-registration requires a client ID.' })

@@ -59,8 +59,8 @@ Desktop 使用独立 profile，目前尚未完成其安装和 OAuth 验收。
 默认服务列表为空。文档中的 `https://mcp.example.com/mcp` 仅为占位地址。
 
 - 自动模式优先使用已配置的预注册身份，其次使用服务端支持的 CIMD，最后尝试 DCR。
-- CIMD 文档需由客户端运营者托管在 HTTPS 地址；本插件不提供公共文档托管。
-- 默认回调为 `http://127.0.0.1:6274/oauth/callback`，必须与客户端允许的回调一致。端口占用时不会自动换端口。
+- 插件提供公共 CIMD 文档，声明 `127.0.0.1` 和 `localhost` 两种本机回调；用户仍可替换文档地址。
+- 默认回调为 `http://127.0.0.1/oauth/callback`。本机模式未填写端口时，登录前由系统分配空闲端口，授权请求和 token 交换使用同一个实际地址；授权服务器须支持 RFC 8252 原生客户端 loopback 端口匹配。已有显式端口配置保持固定，冲突时仍报错；远程 HTTPS 回调和手动响应仍精确匹配。
 - 客户端密钥单独保存；编辑表单留空表示保留已有值。清除授权会删除包含密钥的本机授权记录。
 - 高级设置默认：连接超时 30 秒、授权超时 5 分钟、工具总时限 10 分钟、提前 60 秒刷新、最多重连 5 次且间隔不超过 30 秒。
 
@@ -113,4 +113,4 @@ OAuth 登录和刷新失败会向 Host 标准错误输出 JSON `mcp_oauth_failur
 
 新增服务时，服务标识根据显示名称生成，位于高级设置中；非 ASCII 字母使用 Unicode 码点片段。手动修改标识后，当前草稿不再随名称自动更新。标识重复时拒绝保存，请在高级设置中修改。已有服务保留原标识，编辑时不可修改，重命名也不会改变标识。
 
-新增服务在 **Advanced → Client metadata document URL** 中预填[公开客户端元数据文档](https://noob9527.github.io/dsh-mcp-oauth/oauth/client-metadata.json)，允许修改或清空。已有服务保留原值，包括空值。该文档支持默认本机回调 `http://127.0.0.1:6274/oauth/callback`；自定义回调需要使用匹配的文档。
+新增服务在 **Advanced → Client metadata document URL** 中预填[公开客户端元数据文档](https://noob9527.github.io/dsh-mcp-oauth/oauth/client-metadata.json)，允许修改或清空。已有服务保留原值，包括空值。该文档支持两种本机主机名、`/oauth/callback` 路径和动态端口；其他路径或远程回调需要使用匹配的文档。

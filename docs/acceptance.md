@@ -118,3 +118,9 @@ The in-app browser's failed-navigation API exposed an internal error page instea
 On 2026-11-16, the adapted 0.2.0-rc.1 candidate was built against DSH 0.2.1-alpha.3 and installed as a tarball in clean official Web profiles for 0.2.1-alpha.3 and 0.2.2-rc.1. Both passed plugin/settings loading, independent browser CIMD login, discovery of two tools, and a real-chat search returning `document-1`. The fixture confirmed exactly one search per client, two validated CIMD documents and no DCR registration. See the [17-version matrix](compatibility.md) for automated coverage and evidence limits.
 
 When preparing model credentials in an isolated home, retain the official versioned document format (`version: 1` with `refs`); a flat or incomplete credentials document prevents OAuth credential writes and can prevent DSH startup. Keep the file and values outside the repository.
+
+## Dynamic local callback ports
+
+The 0.2.0-rc.2 development build passed 89 automated tests on 2026-11-17. Local callbacks without a port bind an OS-assigned loopback port before OAuth discovery; the authorization request and token exchange use the same actual URL. Both `127.0.0.1` and `localhost` complete CIMD, DCR and pre-registered flows against the local fixture, refresh tokens, reuse persisted grants after restart and call the deterministic search tool. Concurrent receivers have distinct active ports; wrong state, Host, path and repeated responses are rejected, and cancellation releases the listener. Explicit-port conflict tests and remote/manual callback tests still pass.
+
+The CIMD fixture applies native loopback port matching only; scheme, hostname, path and query changes remain mismatches. These tests establish compatibility with that fixture policy, not with arbitrary authorization servers. Browser acceptance of the dynamic-port change remains pending. Existing persisted explicit-port configurations retain their fixed-port behavior.

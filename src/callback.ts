@@ -4,17 +4,19 @@ import { timingSafeEqual } from 'node:crypto'
 import { OAuthMcpError, cancelled } from './errors.ts'
 
 export interface Callback {
+  /** Actual destination, including the allocated port for a local receiver. */
+  readonly redirectUrl: string
   result: Promise<{ code: string; iss?: string }>
   close(): Promise<void>
 }
 /**
  * Accept one response for an active authorization; the caller closes the receiver.
- * @param redirect - Registered external URL; its Host and path must survive proxying.
+ * @param redirect - Local URL (omit the port for automatic allocation), or external proxy URL whose Host and path must survive proxying.
  * @param state - One-time secret binding the response to the pending login.
  * @param signal - Cancels reception and releases the socket.
  * @param reserved - Optional atomically reserved socket for test isolation.
  * @param listenPort - Internal port for HTTPS reverse proxying; binding stays on 127.0.0.1.
- * @returns Pending response and idempotent cleanup, not a completed token exchange.
+ * @returns Actual redirect URL, pending response and idempotent cleanup, not a completed token exchange.
  */
 export async function listenCallback(redirect: string, state: string, signal: AbortSignal, reserved?: Server, listenPort?: number): Promise<Callback> {
   signal.throwIfAborted()
@@ -62,6 +64,9 @@ export async function listenCallback(redirect: string, state: string, signal: Ab
       server.once('error', no)
       server.listen(listenPort ?? Number(target.port), '127.0.0.1', () => { server.removeListener('error', no); yes() })
     })
+    const address = server.address()
+    if (!address || typeof address === 'string') throw new OAuthMcpError('OAUTH_CALLBACK_UNAVAILABLE')
+    if (target.protocol === 'http:') target.port = String(address.port)
     signal.throwIfAborted()
   } catch {
     signal.removeEventListener('abort', abort)
@@ -69,7 +74,7 @@ export async function listenCallback(redirect: string, state: string, signal: Ab
     server.close()
     throw new OAuthMcpError(signal.aborted ? 'OAUTH_CANCELLED' : 'OAUTH_CALLBACK_UNAVAILABLE')
   }
-  return { result, async close() {
+  return { redirectUrl: target.href, result, async close() {
     signal.removeEventListener('abort', abort)
     server.removeListener('request', handle)
     reject(cancelled())

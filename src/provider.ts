@@ -27,7 +27,7 @@ export class Provider implements OAuthClientProvider {
   private verifier = ''
   private manual?: ManualResponse
   private discovery?: OAuthDiscoveryState
-  private active?: { state: string; signal: AbortSignal; notify: (url: string) => void }
+  private active?: { redirectUrl: string; state: string; signal: AbortSignal; notify: (url: string) => void }
   private refresh?: Promise<void>
   private loginTask?: Promise<void>
   private stopped = false
@@ -53,9 +53,9 @@ export class Provider implements OAuthClientProvider {
     if (!parsed.success) throw new OAuthMcpError('OAUTH_INVALID_GRANT_RECORD')
     if (parsed.data.binding === this.grant.binding) this.grant = parsed.data
   }
-  get redirectUrl(): string { return this.config.redirectUrl }
+  get redirectUrl(): string { return this.active?.redirectUrl ?? this.config.redirectUrl }
   get clientMetadata() {
-    return { client_name: 'DSH MCP OAuth', redirect_uris: [this.redirectUrl], grant_types: ['authorization_code', 'refresh_token'], response_types: ['code'], token_endpoint_auth_method: this.grant.secret ? 'client_secret_post' : 'none', ...(this.config.scope ? { scope: this.config.scope } : {}) }
+    return { ...(this.config.callbackMode === 'local' ? { application_type: 'native' } : {}), client_name: 'DSH MCP OAuth', redirect_uris: [this.redirectUrl], grant_types: ['authorization_code', 'refresh_token'], response_types: ['code'], token_endpoint_auth_method: this.grant.secret ? 'client_secret_post' : 'none', ...(this.config.scope ? { scope: this.config.scope } : {}) }
   }
   state(): string { if (!this.active) throw new OAuthMcpError('OAUTH_LOGIN_REQUIRED'); return this.active.state }
   clientInformation(ctx?: OAuthClientInformationContext): StoredOAuthClientInformation | undefined {
@@ -121,7 +121,7 @@ export class Provider implements OAuthClientProvider {
     if (this.active) throw new OAuthMcpError('OAUTH_BUSY')
     await this.refresh
     const lifetime = AbortSignal.any([signal, this.lifetime.signal, AbortSignal.timeout(this.config.authTimeoutMs)])
-    this.active = { state: randomBytes(32).toString('hex'), signal: lifetime, notify }
+    this.active = { redirectUrl: this.config.redirectUrl, state: randomBytes(32).toString('hex'), signal: lifetime, notify }
     let callback: Awaited<ReturnType<typeof listenCallback>> | undefined
     try {
       this.stage = 'callback_setup'
@@ -129,6 +129,7 @@ export class Provider implements OAuthClientProvider {
         this.manual = new ManualResponse(this.redirectUrl, this.active.state, lifetime)
         callback = this.manual
       } else callback = await this.receiveCallback(this.redirectUrl, this.active.state, lifetime, undefined, this.config.callbackMode === 'remote' ? this.config.callbackPort : undefined)
+      this.active.redirectUrl = callback.redirectUrl
       this.stage = 'resource_challenge'
       const challenge = await this.fetch(this.config.url, { method: 'GET' })
       const resourceMetadataUrl = extractResourceMetadataUrl(challenge)

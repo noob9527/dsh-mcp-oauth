@@ -13,7 +13,7 @@ export async function metadataHost(redirectUrl: string) {
     const ca = await readFile(join(root, 'cert.pem'))
     let url = ''
     const state = { fetches: 0 }
-    const document = { client_id: '', client_name: 'Local CIMD test client', redirect_uris: [redirectUrl], grant_types: ['authorization_code', 'refresh_token'], response_types: ['code'], token_endpoint_auth_method: 'none' }
+    const document = { client_id: '', client_name: 'Local CIMD test client', application_type: 'native', redirect_uris: [redirectUrl], grant_types: ['authorization_code', 'refresh_token'], response_types: ['code'], token_endpoint_auth_method: 'none' }
     server = createServer({ key: await readFile(join(root, 'key.pem')), cert: ca }, (req, res) => {
       if (req.url !== '/client.json') { res.writeHead(404).end(); return }
       state.fetches++

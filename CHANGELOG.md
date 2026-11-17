@@ -2,6 +2,8 @@
 
 ## Unreleased — 0.2.0-rc.2
 
+- Allocate an available local callback port when the URL omits it; declare native CIMD redirects for both localhost and 127.0.0.1. Keep explicit ports and existing configuration unchanged.
+
 - Host a public CIMD document on GitHub Pages and prefill its editable URL under Advanced for new services; preserve existing values. Invalid metadata URLs report validation errors.
 
 - Move Service ID into Advanced and generate it from the display name for new services. Keep saved IDs read-only and report duplicate IDs for manual correction.

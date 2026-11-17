@@ -2,7 +2,7 @@
 import { metadataHost } from './cimd-document.ts'
 import { z } from 'zod'
 import { fixture } from './fixture.ts'
-const callback = process.env.CIMD_CALLBACK_URL ?? 'http://127.0.0.1:16276/oauth/callback'
+const callback = process.env.CIMD_CALLBACK_URL ?? 'http://127.0.0.1/oauth/callback'
 const tokenSeconds = z.coerce.number().int().min(1).max(86400).parse(process.env.CIMD_TOKEN_SECONDS ?? 3600)
 const metadata = await metadataHost(callback)
 const server = await fixture({ cimd: metadata, audit: true, tokenSeconds })

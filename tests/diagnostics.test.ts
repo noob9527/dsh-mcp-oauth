@@ -42,7 +42,7 @@ test('actual resource request failure emits the network stage without leaking it
   const logs: string[] = []
   t.mock.method(console, 'warn', (line: string) => logs.push(line))
   t.mock.method(globalThis, 'fetch', async () => { throw new TypeError(secret, { cause: Object.assign(new Error(secret), { code: 'ENOTFOUND' }) }) })
-  const provider = new Provider(serverSchema.parse({ id: 'test', label: secret, url: 'https://mcp.example.com/mcp', callbackMode: 'manual' }),
+  const provider = new Provider(serverSchema.parse({ id: 'test', label: secret, url: 'https://mcp.example.com/mcp', callbackMode: 'manual', redirectUrl: 'https://client.example.com/callback' }),
     { read: async () => undefined, write: async () => {} })
   t.after(() => provider.stop())
   await assert.rejects(provider.login(new AbortController().signal, () => {}))

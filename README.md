@@ -64,10 +64,10 @@ The initial service list is empty. A placeholder endpoint is `https://mcp.exampl
 | Client ID / secret | Pre-registered identity; the secret is stored separately |
 | Callback mode | Local automatic, remote HTTPS automatic, or manual response paste; remote automatic requires an administrator-configured proxy |
 | Internal loopback listener port | Remote mode only; defaults to 6274, always bound to 127.0.0.1 |
-| Callback URL | Defaults to `http://127.0.0.1:6274/oauth/callback`; must match permitted redirects |
+| Callback URL | Defaults to `http://127.0.0.1/oauth/callback`; local mode chooses a free port when none is specified |
 | Scopes | Optional space-separated scope names |
 
-Automatic mode uses configured pre-registration first, then CIMD when configured and supported, then dynamic registration. Explicit CIMD fails when unsupported. The plugin does not host a public CIMD document. Configure its redirect URI before login; the plugin does not silently select another port if the configured port is occupied.
+Automatic mode uses configured pre-registration first, then CIMD when configured and supported, then dynamic registration. Explicit CIMD fails when unsupported. The public CIMD document declares native-client callbacks at `http://127.0.0.1/oauth/callback` and `http://localhost/oauth/callback`. Local mode binds an OS-assigned port before authorization and uses that exact URL for authorization and token exchange. Explicitly configured ports remain fixed and report conflicts; existing settings are not migrated. Authorization servers must support native loopback port matching (RFC 8252). Remote HTTPS callbacks and manual responses retain exact matching.
 
 Advanced defaults: connection timeout 30 seconds, sign-in timeout 5 minutes, tool deadline 10 minutes, refresh lead time 60 seconds, 5 reconnect attempts with a maximum delay of 30 seconds. Tool deadlines are total deadlines, not progress-reset timers.
 
@@ -133,4 +133,4 @@ Diagnostics omit raw messages, stacks, URLs, service labels, request/response bo
 
 When adding a service, Service ID is generated from the display name and appears under Advanced. Non-ASCII letters use Unicode code-point segments. Editing the ID manually stops automatic updates for that draft. Duplicate IDs are rejected; change the ID in Advanced. Saved services retain their existing, read-only ID when renamed.
 
-New services prefill the [public client metadata document](https://noob9527.github.io/dsh-mcp-oauth/oauth/client-metadata.json) in **Advanced → Client metadata document URL**. You can edit or clear this value. Existing services retain their saved value, including an empty value. The hosted document supports the default local callback `http://127.0.0.1:6274/oauth/callback`; custom callbacks require a matching document.
+New services prefill the [public client metadata document](https://noob9527.github.io/dsh-mcp-oauth/oauth/client-metadata.json) in **Advanced → Client metadata document URL**. You can edit or clear this value. Existing services retain their saved value, including an empty value. The hosted document supports both local hostnames with the `/oauth/callback` path and variable ports. Other callback paths or remote callbacks require a matching document.

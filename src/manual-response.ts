@@ -5,6 +5,7 @@ import { OAuthMcpError, cancelled } from './errors.ts'
 
 export class ManualResponse implements Callback {
   readonly result: Callback['result']
+  get redirectUrl(): string { return this.redirect }
   private settled = false
   private resolve!: (response: { code: string; iss?: string }) => void
   private reject!: (error: Error) => void

@@ -24,3 +24,15 @@ test('strict Remote outputs strip secret fields', () => {
   const output = descriptor.result.create().parse([{ config: serverSchema.parse({ id: 'test', label: 'Test', url: 'https://mcp.example.com/mcp' }), authentication: 'required', connection: 'disconnected', toolCount: 0, error: '', authorizationUrl: '', access_token: 'never-output' }])
   assert(!JSON.stringify(output).includes('never-output'))
 })
+
+test('local callbacks allow automatic ports for both loopback hostnames', () => {
+  const base = { id: 'local', label: 'Local', url: 'https://mcp.example.com/mcp' }
+  for (const redirectUrl of ['http://127.0.0.1/oauth/callback', 'http://localhost/oauth/callback', 'http://localhost:6274/oauth/callback']) {
+    assert(serverSchema.safeParse({ ...base, redirectUrl }).success)
+  }
+  for (const redirectUrl of ['http://127.0.0.1/', 'http://localhost/', 'http://local.example/oauth/callback', 'http://127.0.0.1/oauth/callback?x=1']) {
+    assert(!serverSchema.safeParse({ ...base, redirectUrl }).success)
+  }
+  assert(!serverSchema.safeParse({ ...base, callbackMode: 'manual', redirectUrl: 'http://localhost/oauth/callback' }).success)
+  assert.equal(serverSchema.parse(base).redirectUrl, 'http://127.0.0.1/oauth/callback')
+})

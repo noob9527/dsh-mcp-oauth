@@ -50,8 +50,8 @@ export async function fixture(options: { cimd?: { url: string; ca: Buffer }; aud
         try {
           if (clientId !== options.cimd?.url) throw new Error('Unknown metadata endpoint')
           state.metadataFetches++
-          const document = z.object({ client_id: z.literal(clientId), client_name: z.string().min(1), redirect_uris: z.array(z.string().url()).min(1), token_endpoint_auth_method: z.literal('none'), response_types: z.array(z.string()), grant_types: z.array(z.string()) }).parse(await readMetadata(clientId, options.cimd.ca))
-          if (!document.redirect_uris.includes(url.searchParams.get('redirect_uri') ?? '') || !document.response_types.includes('code') || !document.grant_types.includes('authorization_code')) throw new Error('Invalid client metadata')
+          const document = z.object({ client_id: z.literal(clientId), client_name: z.string().min(1), application_type: z.string().optional(), redirect_uris: z.array(z.string().url()).min(1), token_endpoint_auth_method: z.literal('none'), response_types: z.array(z.string()), grant_types: z.array(z.string()) }).parse(await readMetadata(clientId, options.cimd.ca))
+          if (!document.redirect_uris.some(registered => matchesRedirect(registered, url.searchParams.get('redirect_uri') ?? '', document.application_type)) || !document.response_types.includes('code') || !document.grant_types.includes('authorization_code')) throw new Error('Invalid client metadata')
           state.metadataValidated++
         } catch { state.metadataRejected++; return json(res, { error: 'invalid_client_metadata' }, 400) }
       }
@@ -153,4 +153,14 @@ export async function approve(url: string): Promise<void> {
   const link = html.match(/href="([^"]+)"/)?.[1]
   if (!link) throw new Error('Missing consent link')
   await fetch(new URL(link, url))
+}
+
+/** RFC 8252 native loopback matching; only the port may vary. */
+export function matchesRedirect(registered: string, requested: string, applicationType?: string): boolean {
+  if (registered === requested) return true
+  if (!URL.canParse(registered) || !URL.canParse(requested)) return false
+  const expected = new URL(registered), actual = new URL(requested)
+  if (applicationType !== 'native' || expected.protocol !== 'http:' || !['127.0.0.1', 'localhost', '[::1]'].includes(expected.hostname)) return false
+  expected.port = ''; actual.port = ''
+  return expected.href === actual.href
 }
