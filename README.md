@@ -22,7 +22,7 @@ Version 0.2.0-rc.2 requires DSH `>=0.2.1-alpha.3`. All 13 published versions at 
 
 Requires Node 24.9+ and an unmodified official DSH installation satisfying `>=0.2.1-alpha.3`. The public package name is `@noob9527/dsh-mcp-oauth`.
 
-Version `0.2.0-rc.2` is under development and has not been published to npm. Install the published preview using `next`, or build the current source below. Use `latest` for the stable release.
+Version `0.2.0-rc.2` is a release candidate distributed under `next`. Use `latest` for the stable release.
 
 Install the published preview:
 

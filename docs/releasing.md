@@ -30,7 +30,7 @@ node scripts/check-release.mjs --tarball artifacts/noob9527-dsh-mcp-oauth-0.2.0-
 
 Manually create a GitHub prerelease and attach the reviewed tarball if preview distribution is desired. A source release and an npm release are distinct operations.
 
-Version `0.2.0-rc.2` is an unpublished development target. Publish it only after acceptance and explicit release approval. Publish release candidates under `next`, leaving the stable `latest` tag unchanged.
+Version `0.2.0-rc.2` is a release candidate. Publishing requires acceptance and explicit release approval. Publish release candidates under `next`, leaving the stable `latest` tag unchanged.
 
 The distribution target is the public npm registry under `@noob9527/dsh-mcp-oauth`. Package metadata fixes the registry and public access. Authenticate as an account permitted to publish under the `noob9527` scope; keep credentials outside this repository. Review the exact tarball with `npm publish ./artifacts/noob9527-dsh-mcp-oauth-0.2.0-rc.2.tgz --dry-run`, then publish that same file with `npm publish ./artifacts/noob9527-dsh-mcp-oauth-0.2.0-rc.2.tgz --access public --tag next`. Verify the registry version and install the published package into a clean official DSH profile before announcing it. No workflow automatically publishes npm packages.
 
