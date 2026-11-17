@@ -125,11 +125,11 @@ function Card({ t, view, invoke }: Props) {
         <Field name="mode" t={t}><select disabled={busy} value={draft.mode} onChange={event => setDraft({ ...draft, mode: serverSchema.shape.mode.parse(event.target.value) })}>
           {(['auto', 'cimd', 'preregistered', 'dcr'] as const).map(mode => <option key={mode} value={mode}>{t(mode)}</option>)}
         </select></Field>
-        {(draft.mode === 'auto' || draft.mode === 'preregistered') && <>
-          <Field name="clientId" t={t}><Input value={draft.clientId} required={draft.mode === 'preregistered'} disabled={busy} onChange={event => setDraft({ ...draft, clientId: event.target.value })} /></Field>
-          <Field name="secret" t={t}><Input type="password" autoComplete="new-password" value={secret} disabled={busy} onChange={event => setSecret(event.target.value)} /></Field>
-        </>}
         {(draft.mode === 'auto' || draft.mode === 'cimd') && <Field name="metadataUrl" t={t}><Input value={draft.metadataUrl} required={draft.mode === 'cimd'} disabled={busy} onChange={event => setDraft({ ...draft, metadataUrl: event.target.value })} /></Field>}
+        {(draft.mode === 'auto' || draft.mode === 'preregistered') && <>
+          <Field name="clientId" t={t}><Input value={draft.clientId} placeholder={t(draft.mode === 'auto' ? 'clientIdAutoPlaceholder' : 'clientIdRequiredPlaceholder')} required={draft.mode === 'preregistered'} disabled={busy} onChange={event => setDraft({ ...draft, clientId: event.target.value })} /></Field>
+          <Field name="secret" t={t}><Input type="password" autoComplete="new-password" placeholder={t(editing ? 'secretEditPlaceholder' : 'secretPlaceholder')} value={secret} disabled={busy} onChange={event => setSecret(event.target.value)} /></Field>
+        </>}
         <Field name="callbackMode" t={t}><select disabled={busy} value={draft.callbackMode} onChange={event => setDraft({ ...draft, callbackMode: serverSchema.shape.callbackMode.parse(event.target.value) })}>
           <option value="local">{t('localMode')}</option><option value="remote">{t('remoteMode')}</option><option value="manual">{t('manualMode')}</option>
         </select></Field>
