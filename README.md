@@ -6,28 +6,28 @@ OAuth-protected MCP tools for an unmodified DeepSeek Harness installation. The p
 
 ## Status and compatibility
 
-Independent community plugin; not an official DeepSeek product. The npm 0.1.0 release supports local callbacks. The 0.2.0-rc.1 preview adds remote personal-instance callbacks and manual response submission.
+Independent community plugin; not an official DeepSeek product. The npm 0.1.0 release supports local callbacks. Version 0.2.0 adds remote personal-instance callbacks and manual response submission.
 
 | Surface | Status |
 | --- | --- |
 | Official DSH 0.2.1-alpha.3 / 0.2.2-rc.1 Web, local macOS | Current candidate: browser CIMD OAuth and real chat tool calls verified |
 | Official Desktop | Intended scope; acceptance pending |
 | Other DSH versions | Not declared compatible |
-| Remote personal DSH, 0.2.0-rc.1 | HTTPS proxy fixture verified; actual deployment acceptance required |
+| Remote personal DSH, 0.2.0 | HTTPS proxy fixture verified; actual deployment acceptance required |
 | Shared multi-user DSH | Not supported |
 
-Version 0.2.0-rc.1 requires DSH `>=0.2.1-alpha.3`. All 13 published versions at or above this floor in the [17-version compatibility matrix](docs/compatibility.md) passed automated checks. Later versions are admitted by the range but are not automatically certified. Version 0.1.0 retains its original rc.2 requirement.
+Version 0.2.0 requires DSH `>=0.2.1-alpha.3`. All 13 published versions at or above this floor in the [17-version compatibility matrix](docs/compatibility.md) passed automated checks. Later versions are admitted by the range but are not automatically certified. Version 0.1.0 retains its original rc.2 requirement.
 
 ## Install from npm
 
 Requires Node 24.9+ and an unmodified official DSH installation satisfying `>=0.2.1-alpha.3`. The public package name is `@noob9527/dsh-mcp-oauth`.
 
-Install the preview by its exact version below, or use the `next` tag. The stable `latest` tag remains on 0.1.0.
+Install version 0.2.0 below, or use `latest` for the current stable release.
 
-Install the preview release:
+Install the stable release:
 
 ```sh
-dsh plugin --profile web add @noob9527/dsh-mcp-oauth@0.2.0-rc.1
+dsh plugin --profile web add @noob9527/dsh-mcp-oauth@0.2.0
 ```
 
 The unscoped `dsh-mcp-oauth` package is a different project. When migrating a local unscoped installation, remove its plugin entry before installing this package; do not enable both together. Use the same DSH profile and home to retain locally stored service settings and grants.
@@ -41,7 +41,7 @@ pnpm install --frozen-lockfile --ignore-scripts
 pnpm run typecheck
 pnpm test
 pnpm pack --pack-destination artifacts
-dsh plugin --profile web add "$(pwd)/artifacts/noob9527-dsh-mcp-oauth-0.2.0-rc.1.tgz"
+dsh plugin --profile web add "$(pwd)/artifacts/noob9527-dsh-mcp-oauth-0.2.0.tgz"
 ```
 
 Tests require OpenSSL supporting `req -addext`. No model API key or business MCP endpoint is needed for automated tests. Restart DSH when prompted. If DSH uses a custom `DSH_HOME`, use the same value for plugin installation and startup. For npm installation, check `npm config get registry` if the package cannot be resolved; the public registry is `https://registry.npmjs.org/`.

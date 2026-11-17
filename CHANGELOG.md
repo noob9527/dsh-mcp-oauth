@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0 — 2026-11-17
+
+- Publish the 0.2 feature set as a stable release: remote personal-instance callbacks, manual authorization responses, and DSH compatibility from `0.2.1-alpha.3`.
+- Add sanitized Host OAuth failure diagnostics with operation stages, bounded error chains, network/OAuth reason codes and proxy tunnel rejection status. Raw messages, URLs, stacks and credentials are excluded.
+- Preserve existing Client error codes and authentication recovery behavior.
+
 ## 0.2.0-rc.1 — 2026-11-16
 
 - Lower the DSH requirement to `>=0.2.1-alpha.3`, using the public `dsh-llm` error export and the Client locale type entry. Build against the minimum version and validate all 17 published 0.2.x versions.

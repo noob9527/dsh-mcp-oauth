@@ -1,6 +1,6 @@
 # Security
 
-This preview integrates OAuth credentials and external tools. Only DSH 0.2.2-rc.2 is currently targeted; Desktop acceptance is pending. See the README for deployment limitations.
+This plugin integrates OAuth credentials and external tools. DSH >=0.2.1-alpha.3 is supported; Desktop acceptance is pending. See the README for deployment limitations.
 
 Do not put tokens, client secrets, authorization codes, credential files or unsanitized logs in public issues or pull requests.
 
