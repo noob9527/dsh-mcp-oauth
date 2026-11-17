@@ -19,6 +19,7 @@ type Props = PropsRuntime<'plugins.item'> & PropsLocale<'mcp.oauth'> & { invoke:
 const stack: CSSProperties = { display: 'grid', gap: 12, minWidth: 0 }
 const actions: CSSProperties = { display: 'flex', flexWrap: 'wrap', gap: 8 }
 const box: CSSProperties = { ...stack, padding: 16, border: '1px solid var(--dsw-border)', borderRadius: 12, overflowWrap: 'anywhere' }
+const defaultMetadataUrl = 'https://noob9527.github.io/dsh-mcp-oauth/oauth/client-metadata.json'
 const numeric = ['connectTimeoutMs', 'authTimeoutMs', 'toolTimeoutMs', 'refreshSkewMs', 'reconnectAttempts', 'reconnectMaxDelayMs'] as const
 /** Localized field labels with keyboard- and pointer-accessible help. */
 function Field({ name, t, children }: { name: 'label' | 'url' | 'id' | 'mode' | 'clientId' | 'secret' | 'metadataUrl' | 'callbackMode' | 'redirectUrl' | 'callbackPort' | 'scope' | 'connectTimeoutMs' | 'authTimeoutMs' | 'toolTimeoutMs' | 'refreshSkewMs' | 'reconnectAttempts' | 'reconnectMaxDelayMs' | 'manualResponse'; t: Props['t']; children: ReactElement<{ id?: string }> }) {
@@ -107,7 +108,7 @@ function Card({ t, view, invoke }: Props) {
         <Button disabled={busy} onClick={() => act(row.config.id, 'remove')}>{t('remove')}</Button>
       </div>
     </section>)}
-    {!draft && <Button disabled={busy} onClick={() => { setDraft(serverSchema.parse({ id: serviceIdFromLabel('MCP'), label: 'MCP', url: 'https://mcp.example.com/mcp', metadataUrl: 'https://noob9527.github.io/dsh-mcp-oauth/oauth/client-metadata.json' })); setEditing(false); setCustomId(''); setAdvanced(false); setSecret('') }}>{t('add')}</Button>}
+    {!draft && <Button disabled={busy} onClick={() => { setDraft(serverSchema.parse({ id: serviceIdFromLabel('MCP'), label: 'MCP', url: 'https://mcp.example.com/mcp', metadataUrl: defaultMetadataUrl })); setEditing(false); setCustomId(''); setAdvanced(false); setSecret('') }}>{t('add')}</Button>}
     {draft && <form style={box} onSubmit={event => {
       event.preventDefault()
       const effectiveId = editing ? draft.id : customId || serviceIdFromLabel(draft.label)
@@ -124,16 +125,17 @@ function Card({ t, view, invoke }: Props) {
         <Field name="mode" t={t}><select disabled={busy} value={draft.mode} onChange={event => setDraft({ ...draft, mode: serverSchema.shape.mode.parse(event.target.value) })}>
           {(['auto', 'cimd', 'preregistered', 'dcr'] as const).map(mode => <option key={mode} value={mode}>{t(mode)}</option>)}
         </select></Field>
-        <Field name="secret" t={t}><Input type="password" autoComplete="new-password" value={secret} disabled={busy} onChange={event => setSecret(event.target.value)} /></Field>
-        {(['clientId', 'redirectUrl'] as const).map(key => <Field key={key} name={key} t={t}>
-          <Input value={draft[key]} disabled={busy} onChange={event => setDraft({ ...draft, [key]: event.target.value })} />
-        </Field>)}
+        {(draft.mode === 'auto' || draft.mode === 'preregistered') && <>
+          <Field name="clientId" t={t}><Input value={draft.clientId} required={draft.mode === 'preregistered'} disabled={busy} onChange={event => setDraft({ ...draft, clientId: event.target.value })} /></Field>
+          <Field name="secret" t={t}><Input type="password" autoComplete="new-password" value={secret} disabled={busy} onChange={event => setSecret(event.target.value)} /></Field>
+        </>}
+        {(draft.mode === 'auto' || draft.mode === 'cimd') && <Field name="metadataUrl" t={t}><Input value={draft.metadataUrl} required={draft.mode === 'cimd'} disabled={busy} onChange={event => setDraft({ ...draft, metadataUrl: event.target.value })} /></Field>}
         <Field name="callbackMode" t={t}><select disabled={busy} value={draft.callbackMode} onChange={event => setDraft({ ...draft, callbackMode: serverSchema.shape.callbackMode.parse(event.target.value) })}>
           <option value="local">{t('localMode')}</option><option value="remote">{t('remoteMode')}</option><option value="manual">{t('manualMode')}</option>
         </select></Field>
         <p>{t(draft.callbackMode === 'manual' ? 'manualHelp' : draft.callbackMode === 'remote' ? 'remoteHelp' : 'local')}</p>
         {draft.callbackMode === 'remote' && <Field name="callbackPort" t={t}><Input type="number" disabled={busy} value={draft.callbackPort} onChange={event => setDraft({ ...draft, callbackPort: Number(event.target.value) })} /></Field>}
-        <Field name="metadataUrl" t={t}><Input value={draft.metadataUrl} disabled={busy} onChange={event => setDraft({ ...draft, metadataUrl: event.target.value })} /></Field>
+        {draft.callbackMode !== 'local' && draft.metadataUrl !== defaultMetadataUrl && <Field name="redirectUrl" t={t}><Input value={draft.redirectUrl} disabled={busy} onChange={event => setDraft({ ...draft, redirectUrl: event.target.value })} /></Field>}
         <Field name="scope" t={t}><Input value={draft.scope} disabled={busy} placeholder={t('scopePlaceholder')} onChange={event => setDraft({ ...draft, scope: event.target.value })} /></Field>
         {numeric.map(key => <Field key={key} name={key} t={t}><Input type="number" value={draft[key]} onChange={event => setDraft({ ...draft, [key]: Number(event.target.value) })} /></Field>)}</div></details>
       <div style={actions}><Button type="submit" disabled={busy}>{t('save')}</Button><Button type="button" disabled={busy} onClick={() => { setDraft(undefined); setSecret('') }}>{t('discard')}</Button></div>

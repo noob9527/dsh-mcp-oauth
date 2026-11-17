@@ -55,7 +55,7 @@ export class Provider implements OAuthClientProvider {
   }
   get redirectUrl(): string { return this.active?.redirectUrl ?? this.config.redirectUrl }
   get clientMetadata() {
-    return { ...(this.config.callbackMode === 'local' ? { application_type: 'native' } : {}), client_name: 'DSH MCP OAuth', redirect_uris: [this.redirectUrl], grant_types: ['authorization_code', 'refresh_token'], response_types: ['code'], token_endpoint_auth_method: this.grant.secret ? 'client_secret_post' : 'none', ...(this.config.scope ? { scope: this.config.scope } : {}) }
+    return { ...(this.config.callbackMode === 'local' ? { application_type: 'native' } : {}), client_name: 'DSH MCP OAuth', redirect_uris: [this.redirectUrl], grant_types: ['authorization_code', 'refresh_token'], response_types: ['code'], token_endpoint_auth_method: (this.config.mode === 'preregistered' || this.config.mode === 'auto' && this.config.clientId) && this.grant.secret ? 'client_secret_post' : 'none', ...(this.config.scope ? { scope: this.config.scope } : {}) }
   }
   state(): string { if (!this.active) throw new OAuthMcpError('OAUTH_LOGIN_REQUIRED'); return this.active.state }
   clientInformation(ctx?: OAuthClientInformationContext): StoredOAuthClientInformation | undefined {

@@ -177,3 +177,15 @@ test('CIMD rejects mismatched document identity and callback before consent', as
   assert.equal(server.state.tokenExchanges, 0)
   assert.equal(server.state.registrations, 0)
 })
+
+for (const mode of ['auto', 'cimd', 'preregistered', 'dcr'] as const) test(`${mode}: configured secret only applies to pre-registration`, async t => {
+  const config = serverSchema.parse({ id: 'test', label: 'Test', url: 'https://mcp.example.com/mcp', mode,
+    clientId: 'configured-client', metadataUrl: 'https://example.com/client.json' })
+  const provider = new Provider(config, { read: async () => undefined, write: async () => {} })
+  t.after(() => provider.stop())
+  await provider.setSecret('configured-secret')
+  const preregistered = mode === 'auto' || mode === 'preregistered'
+  assert.equal(provider.clientMetadata.token_endpoint_auth_method, preregistered ? 'client_secret_post' : 'none')
+  assert.equal(provider.clientInformation()?.client_id, preregistered ? 'configured-client' : undefined)
+  assert.equal(provider.clientMetadataUrl, mode === 'cimd' ? config.metadataUrl : undefined)
+})

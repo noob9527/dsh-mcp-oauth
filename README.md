@@ -140,3 +140,5 @@ Scopes appears under Advanced and defaults to empty for automatic discovery. Sep
 The service form shows only Display name and MCP URL by default. All other configuration fields are under Advanced; expanding it does not change stored values. Validation errors in advanced fields expand that section automatically.
 
 Each configuration field has a help button with a localized tooltip. Hover, focus with the keyboard or click to read its purpose; click outside or press Escape to dismiss it.
+
+Registration mode controls the fields in Advanced: Automatic shows Client ID, Client secret and Client metadata document URL; CIMD shows only the document URL; Pre-registration shows Client ID and Client secret; DCR shows none of these. Hidden values are retained. The callback URL is hidden for local callbacks or when the document URL equals the default hosted URL; its saved value is preserved. The default document supports local callbacks only. Remote or manual callbacks need compatible client metadata and callback settings.
