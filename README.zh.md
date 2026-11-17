@@ -110,3 +110,5 @@ pnpm exec tsx tests/serve-fixture.ts
 OAuth 登录和刷新失败会向 Host 标准错误输出 JSON `mcp_oauth_failure` 记录。容器部署请查看 Host/容器日志，而非聊天记录。日志包含服务标识摘要、失败阶段，以及最多六层允许输出的错误分类、网络错误码和 HTTP 状态码。阶段包括 `callback_setup`、`resource_challenge`、`discovery_and_registration`、`authorization_callback`、`token_exchange`、`credential_persistence` 和 `refresh`；发现阶段包含 SDK 管理的客户端注册。未知错误保留为 `UnknownError`，未识别原因不表示成功。代理隧道拒绝状态从已识别的错误文本中提取，原始文本不会保留。
 
 日志不包含原始消息、堆栈、URL、服务显示名称、请求或响应正文、请求头、授权码、state 或凭据，也不进入 Client 状态和会话事件。UI 错误码保持不变。服务标识摘要用于关联错误，不是访问凭据。
+
+新增服务时，服务标识根据显示名称生成，位于高级设置中；非 ASCII 字母使用 Unicode 码点片段。手动修改标识后，当前草稿不再随名称自动更新。标识重复时拒绝保存，请在高级设置中修改。已有服务保留原标识，编辑时不可修改，重命名也不会改变标识。
