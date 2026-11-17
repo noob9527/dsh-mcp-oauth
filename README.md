@@ -1,5 +1,10 @@
 # DSH MCP OAuth
 
+[![npm latest](https://img.shields.io/npm/v/%40noob9527/dsh-mcp-oauth/latest?label=npm%20latest)](https://www.npmjs.com/package/@noob9527/dsh-mcp-oauth)
+[![npm next](https://img.shields.io/npm/v/%40noob9527/dsh-mcp-oauth/next?label=npm%20next)](https://www.npmjs.com/package/@noob9527/dsh-mcp-oauth?activeTab=versions)
+[![CI](https://github.com/noob9527/dsh-mcp-oauth/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/noob9527/dsh-mcp-oauth/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 OAuth-protected MCP tools for an unmodified DeepSeek Harness installation. The plugin owns its MCP connections and uses the official tool registry, credential store, authorization service and plugin-page extension.
 
 [中文](README.zh.md)

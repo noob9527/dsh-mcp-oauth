@@ -1,5 +1,10 @@
 # DSH MCP OAuth
 
+[![npm latest](https://img.shields.io/npm/v/%40noob9527/dsh-mcp-oauth/latest?label=npm%20latest)](https://www.npmjs.com/package/@noob9527/dsh-mcp-oauth)
+[![npm next](https://img.shields.io/npm/v/%40noob9527/dsh-mcp-oauth/next?label=npm%20next)](https://www.npmjs.com/package/@noob9527/dsh-mcp-oauth?activeTab=versions)
+[![CI](https://github.com/noob9527/dsh-mcp-oauth/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/noob9527/dsh-mcp-oauth/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 为未经修改的官方 DeepSeek Harness 提供 OAuth MCP 工具接入。插件自行管理 MCP 连接，通过官方工具、凭据、授权及插件页面接口集成。
 
 [English](README.md)
