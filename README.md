@@ -131,7 +131,7 @@ OAuth login and refresh failures emit a JSON `mcp_oauth_failure` record to Host 
 
 Diagnostics omit raw messages, stacks, URLs, service labels, request/response bodies, headers, authorization codes, state and credentials. They are not returned in Client state or session events. UI error codes remain unchanged. A hashed identifier correlates failures but is not an access credential.
 
-When adding a service, Service ID is generated from the display name and appears under Advanced. Non-ASCII letters use Unicode code-point segments. Editing the ID manually stops automatic updates for that draft. Duplicate IDs are rejected; change the ID in Advanced. Saved services retain their existing, read-only ID when renamed.
+When adding a service, Service ID is blank under Advanced, with a placeholder generated from the display name. Saving uses the entered ID or, when blank, the generated ID. Clearing a manually entered ID restores automatic generation. Non-ASCII letters use Unicode code-point segments. Duplicate IDs are rejected; change the ID in Advanced. Saved services retain their existing, read-only ID when renamed.
 
 New services prefill the [public client metadata document](https://noob9527.github.io/dsh-mcp-oauth/oauth/client-metadata.json) in **Advanced → Client metadata document URL**. You can edit or clear this value. Existing services retain their saved value, including an empty value. The hosted document supports both local hostnames with the `/oauth/callback` path and variable ports. Other callback paths or remote callbacks require a matching document.
 

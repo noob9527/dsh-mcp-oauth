@@ -55,13 +55,12 @@ function ManualInput({ id, t, invoke }: { id: string; t: Props['t']; invoke: Inv
   </form>
 }
 function Card({ t, view, invoke }: Props) {
-  const scopeHelpId = useId()
   const [rows, setRows] = useState<ServerStatus[]>()
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [draft, setDraft] = useState<ServerConfig>()
   const [editing, setEditing] = useState(false)
-  const [customId, setCustomId] = useState(false)
+  const [customId, setCustomId] = useState('')
   const [advanced, setAdvanced] = useState(false)
   const [secret, setSecret] = useState('')
   useEffect(() => {
@@ -102,25 +101,26 @@ function Card({ t, view, invoke }: Props) {
       <div style={actions}>
         <Button disabled={busy || !row.config.enabled} onClick={() => act(row.config.id, row.authentication === 'authorizing' ? 'cancel' : 'login')}>{t(row.authentication === 'authorizing' ? 'cancel' : 'login')}</Button>
         <Button disabled={busy || row.authentication !== 'authorized' || !row.config.enabled} onClick={() => act(row.config.id, 'reconnect')}>{t('reconnect')}</Button>
-        <Button disabled={busy} onClick={() => { setDraft(row.config); setEditing(true); setCustomId(false); setAdvanced(false); setSecret('') }}>{t('edit')}</Button>
+        <Button disabled={busy} onClick={() => { setDraft(row.config); setEditing(true); setCustomId(''); setAdvanced(false); setSecret('') }}>{t('edit')}</Button>
         <Button disabled={busy} onClick={() => { void run(() => invoke('save', { config: { ...row.config, enabled: !row.config.enabled } })) }}>{t(row.config.enabled ? 'disable' : 'enable')}</Button>
         <Button disabled={busy} onClick={() => act(row.config.id, 'clear')}>{t('clear')}</Button>
         <Button disabled={busy} onClick={() => act(row.config.id, 'remove')}>{t('remove')}</Button>
       </div>
     </section>)}
-    {!draft && <Button disabled={busy} onClick={() => { setDraft(serverSchema.parse({ id: serviceIdFromLabel('MCP'), label: 'MCP', url: 'https://mcp.example.com/mcp', metadataUrl: 'https://noob9527.github.io/dsh-mcp-oauth/oauth/client-metadata.json' })); setEditing(false); setCustomId(false); setAdvanced(false); setSecret('') }}>{t('add')}</Button>}
+    {!draft && <Button disabled={busy} onClick={() => { setDraft(serverSchema.parse({ id: serviceIdFromLabel('MCP'), label: 'MCP', url: 'https://mcp.example.com/mcp', metadataUrl: 'https://noob9527.github.io/dsh-mcp-oauth/oauth/client-metadata.json' })); setEditing(false); setCustomId(''); setAdvanced(false); setSecret('') }}>{t('add')}</Button>}
     {draft && <form style={box} onSubmit={event => {
       event.preventDefault()
-      const parsed = serverSchema.safeParse(draft)
-      if (!editing && rows?.some(row => row.config.id === draft.id)) { setAdvanced(true); setError(t('duplicateId')); return }
+      const effectiveId = editing ? draft.id : customId || serviceIdFromLabel(draft.label)
+      const parsed = serverSchema.safeParse({ ...draft, id: effectiveId })
+      if (!editing && rows?.some(row => row.config.id === effectiveId)) { setAdvanced(true); setError(t('duplicateId')); return }
       if (!parsed.success) { if (parsed.error.issues.some(issue => issue.path[0] !== 'label' && issue.path[0] !== 'url')) setAdvanced(true); setError(t('invalid')); return }
       void run(async () => { await invoke('save', { config: parsed.data, ...(secret ? { secret } : {}) }); setDraft(undefined); setSecret('') })
     }}>
       {(['label', 'url'] as const).map(key => <Field key={key} name={key} t={t}>
-        <Input value={draft[key]} disabled={busy} onChange={event => setDraft({ ...draft, [key]: event.target.value, ...(key === 'label' && !editing && !customId ? { id: serviceIdFromLabel(event.target.value) } : {}) })} />
+        <Input value={draft[key]} disabled={busy} onChange={event => setDraft({ ...draft, [key]: event.target.value })} />
       </Field>)}
       <details open={advanced} onToggle={event => setAdvanced(event.currentTarget.open)}><summary>{t('advanced')}</summary><div style={stack}>
-        <Field name="id" t={t}><Input value={draft.id} disabled={busy || editing} onChange={event => { setCustomId(true); setDraft({ ...draft, id: event.target.value }) }} /></Field>
+        <Field name="id" t={t}><Input value={editing ? draft.id : customId} placeholder={editing ? undefined : serviceIdFromLabel(draft.label)} disabled={busy || editing} onChange={event => setCustomId(event.target.value)} /></Field>
         <Field name="mode" t={t}><select disabled={busy} value={draft.mode} onChange={event => setDraft({ ...draft, mode: serverSchema.shape.mode.parse(event.target.value) })}>
           {(['auto', 'cimd', 'preregistered', 'dcr'] as const).map(mode => <option key={mode} value={mode}>{t(mode)}</option>)}
         </select></Field>
@@ -134,10 +134,7 @@ function Card({ t, view, invoke }: Props) {
         <p>{t(draft.callbackMode === 'manual' ? 'manualHelp' : draft.callbackMode === 'remote' ? 'remoteHelp' : 'local')}</p>
         {draft.callbackMode === 'remote' && <Field name="callbackPort" t={t}><Input type="number" disabled={busy} value={draft.callbackPort} onChange={event => setDraft({ ...draft, callbackPort: Number(event.target.value) })} /></Field>}
         <Field name="metadataUrl" t={t}><Input value={draft.metadataUrl} disabled={busy} onChange={event => setDraft({ ...draft, metadataUrl: event.target.value })} /></Field>
-        <div style={stack}>
-          <Field name="scope" t={t}><Input value={draft.scope} disabled={busy} aria-describedby={scopeHelpId} onChange={event => setDraft({ ...draft, scope: event.target.value })} /></Field>
-          <p id={scopeHelpId} style={{ margin: 0 }}>{t('scopeHelp')}</p>
-        </div>
+        <Field name="scope" t={t}><Input value={draft.scope} disabled={busy} placeholder={t('scopePlaceholder')} onChange={event => setDraft({ ...draft, scope: event.target.value })} /></Field>
         {numeric.map(key => <Field key={key} name={key} t={t}><Input type="number" value={draft[key]} onChange={event => setDraft({ ...draft, [key]: Number(event.target.value) })} /></Field>)}</div></details>
       <div style={actions}><Button type="submit" disabled={busy}>{t('save')}</Button><Button type="button" disabled={busy} onClick={() => { setDraft(undefined); setSecret('') }}>{t('discard')}</Button></div>
     </form>}
